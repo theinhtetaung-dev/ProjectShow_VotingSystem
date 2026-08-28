@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="VotingSystem.DataAccess/VotingSystem.DataAccess.csproj" />
+  <Project Path="VotingSystem.Domain/VotingSystem.Domain.csproj" />
+  <Project Path="VotingSystem.WebAPI/VotingSystem.WebAPI.csproj" />
+</Solution>
