@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\VotingSystem.DataAccess\VotingSystem.DataAccess.csproj" />
+  </ItemGroup>
+
 </Project>
