@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\VotingSystem.DataAccess\VotingSystem.DataAccess.csproj" />
+    <ProjectReference Include="..\VotingSystem.Shared\VotingSystem.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
