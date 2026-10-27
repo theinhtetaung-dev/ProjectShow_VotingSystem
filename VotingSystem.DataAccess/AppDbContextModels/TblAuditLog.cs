@@ -1,23 +1,48 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace VotingSystem.DataAccess.AppDbContextModels;
 
+[Table("Tbl_Audit_Log")]
+[Index("EntityType", "EntityId", Name = "IX_Tbl_Audit_Log_Entity")]
+[Index("PerformedBy", Name = "IX_Tbl_Audit_Log_PerformedBy")]
 public partial class TblAuditLog
 {
-    public int Id { get; set; }
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
 
+    [Column("action")]
+    [StringLength(100)]
     public string Action { get; set; } = null!;
 
-    public string TableName { get; set; } = null!;
+    [Column("entity_type")]
+    [StringLength(100)]
+    public string EntityType { get; set; } = null!;
 
-    public int RecordId { get; set; }
+    [Column("entity_id")]
+    public long? EntityId { get; set; }
 
-    public int UserId { get; set; }
+    [Column("performed_by")]
+    public long? PerformedBy { get; set; }
 
-    public string? ActionDetails { get; set; }
+    [Column("performed_at")]
+    public DateTime PerformedAt { get; set; }
 
-    public DateTime? CreateTime { get; set; }
+    [Column("old_value")]
+    public string? OldValue { get; set; }
 
-    public virtual TblUser User { get; set; } = null!;
+    [Column("new_value")]
+    public string? NewValue { get; set; }
+
+    [Column("description")]
+    [StringLength(1000)]
+    public string? Description { get; set; }
+
+    [ForeignKey("PerformedBy")]
+    [InverseProperty("TblAuditLogs")]
+    public virtual TblUser? PerformedByNavigation { get; set; }
 }

@@ -11,13 +11,11 @@ public partial class AppDbContext : DbContext
     {
     }
 
+    public virtual DbSet<TblAdminEvent> TblAdminEvents { get; set; }
+
     public virtual DbSet<TblAuditLog> TblAuditLogs { get; set; }
 
     public virtual DbSet<TblEvent> TblEvents { get; set; }
-
-    public virtual DbSet<TblEventAdmin> TblEventAdmins { get; set; }
-
-    public virtual DbSet<TblEventUser> TblEventUsers { get; set; }
 
     public virtual DbSet<TblPermission> TblPermissions { get; set; }
 
@@ -25,345 +23,161 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblProjectType> TblProjectTypes { get; set; }
 
+    public virtual DbSet<TblResult> TblResults { get; set; }
+
     public virtual DbSet<TblRole> TblRoles { get; set; }
+
+    public virtual DbSet<TblRolePermission> TblRolePermissions { get; set; }
 
     public virtual DbSet<TblUser> TblUsers { get; set; }
 
-    public virtual DbSet<TblUserVoteLimit> TblUserVoteLimits { get; set; }
+    public virtual DbSet<TblUserEvent> TblUserEvents { get; set; }
 
     public virtual DbSet<TblVote> TblVotes { get; set; }
 
+    public virtual DbSet<TblVotingLimit> TblVotingLimits { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<TblAdminEvent>(entity =>
+        {
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+            entity.HasOne(d => d.AdminUser).WithMany(p => p.TblAdminEventAdminUsers)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Tbl_AdminEvent_User");
+
+            entity.HasOne(d => d.AssignedByNavigation).WithMany(p => p.TblAdminEventAssignedByNavigations).HasConstraintName("FK_Tbl_AdminEvent_AssignedBy");
+
+            entity.HasOne(d => d.Event).WithMany(p => p.TblAdminEvents)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Tbl_AdminEvent_Event");
+        });
+
         modelBuilder.Entity<TblAuditLog>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Tbl_Audi__3213E83F3D8C4714");
-
-            entity.ToTable("Tbl_AuditLog");
-
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Action)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("action");
-            entity.Property(e => e.ActionDetails).HasColumnName("action_details");
-            entity.Property(e => e.CreateTime)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnName("create_time");
-            entity.Property(e => e.RecordId).HasColumnName("record_id");
-            entity.Property(e => e.TableName)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("table_name");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
-
-            entity.HasOne(d => d.User).WithMany(p => p.TblAuditLogs)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_AuditLog_User");
+            entity.HasOne(d => d.PerformedByNavigation).WithMany(p => p.TblAuditLogs).HasConstraintName("FK_Tbl_AuditLog_PerformedBy");
         });
 
         modelBuilder.Entity<TblEvent>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Tbl_Even__3213E83FE84761E5");
-
-            entity.ToTable("Tbl_Event");
-
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CreateBy).HasColumnName("create_by");
-            entity.Property(e => e.CreateTime).HasColumnName("create_time");
-            entity.Property(e => e.DeleteFlag)
-                .HasDefaultValue(false)
-                .HasColumnName("delete_flag");
-            entity.Property(e => e.Description)
-                .IsUnicode(false)
-                .HasColumnName("description");
-            entity.Property(e => e.EndTime).HasColumnName("end_time");
-            entity.Property(e => e.EventName)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("event_name");
-            entity.Property(e => e.ModifyBy).HasColumnName("modify_by");
-            entity.Property(e => e.ModifyTime).HasColumnName("modify_time");
-            entity.Property(e => e.StartTime).HasColumnName("start_time");
-        });
-
-        modelBuilder.Entity<TblEventAdmin>(entity =>
-        {
-            entity.HasKey(e => new { e.EventId, e.AdminId }).HasName("PK__Tbl_Even__274A53335E45FC85");
-
-            entity.ToTable("Tbl_EventAdmin");
-
-            entity.Property(e => e.EventId).HasColumnName("event_id");
-            entity.Property(e => e.AdminId).HasColumnName("admin_id");
-            entity.Property(e => e.CreateBy).HasColumnName("create_by");
-            entity.Property(e => e.CreateTime).HasColumnName("create_time");
-            entity.Property(e => e.DeleteFlag)
-                .HasDefaultValue(false)
-                .HasColumnName("delete_flag");
-            entity.Property(e => e.ModifyBy).HasColumnName("modify_by");
-            entity.Property(e => e.ModifyTime).HasColumnName("modify_time");
-
-            entity.HasOne(d => d.Admin).WithMany(p => p.TblEventAdmins)
-                .HasForeignKey(d => d.AdminId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_EventAdmin_User");
-
-            entity.HasOne(d => d.Event).WithMany(p => p.TblEventAdmins)
-                .HasForeignKey(d => d.EventId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_EventAdmin_Event");
-        });
-
-        modelBuilder.Entity<TblEventUser>(entity =>
-        {
-            entity.HasKey(e => new { e.EventId, e.UserId }).HasName("PK__Tbl_Even__C8EB14575547B596");
-
-            entity.ToTable("Tbl_EventUser");
-
-            entity.Property(e => e.EventId).HasColumnName("event_id");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.Property(e => e.CreateBy).HasColumnName("create_by");
-            entity.Property(e => e.CreateTime).HasColumnName("create_time");
-            entity.Property(e => e.DeleteFlag)
-                .HasDefaultValue(false)
-                .HasColumnName("delete_flag");
-            entity.Property(e => e.ModifyBy).HasColumnName("modify_by");
-            entity.Property(e => e.ModifyTime).HasColumnName("modify_time");
-
-            entity.HasOne(d => d.Event).WithMany(p => p.TblEventUsers)
-                .HasForeignKey(d => d.EventId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_EventUser_Event");
-
-            entity.HasOne(d => d.User).WithMany(p => p.TblEventUsers)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_EventUser_User");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<TblPermission>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Tbl_Perm__3213E83F3875B718");
-
-            entity.ToTable("Tbl_Permission");
-
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CreateBy).HasColumnName("create_by");
-            entity.Property(e => e.CreateTime).HasColumnName("create_time");
-            entity.Property(e => e.DeleteFlag)
-                .HasDefaultValue(false)
-                .HasColumnName("delete_flag");
-            entity.Property(e => e.ModifyBy).HasColumnName("modify_by");
-            entity.Property(e => e.ModifyTime).HasColumnName("modify_time");
-            entity.Property(e => e.PermissionName)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("permission_name");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<TblProject>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Tbl_Proj__3213E83FEB05B58F");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
 
-            entity.ToTable("Tbl_Project");
-
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CreateBy).HasColumnName("create_by");
-            entity.Property(e => e.CreateTime).HasColumnName("create_time");
-            entity.Property(e => e.DeleteFlag)
-                .HasDefaultValue(false)
-                .HasColumnName("delete_flag");
-            entity.Property(e => e.Description)
-                .IsUnicode(false)
-                .HasColumnName("description");
-            entity.Property(e => e.EventId).HasColumnName("event_id");
-            entity.Property(e => e.ModifyBy).HasColumnName("modify_by");
-            entity.Property(e => e.ModifyTime).HasColumnName("modify_time");
-            entity.Property(e => e.ProjectName)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("project_name");
-            entity.Property(e => e.ProjectTypeId).HasColumnName("project_type_id");
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.TblProjectCreatedByNavigations).HasConstraintName("FK_Tbl_Project_CreatedBy");
 
             entity.HasOne(d => d.Event).WithMany(p => p.TblProjects)
-                .HasForeignKey(d => d.EventId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Project_Event");
+                .HasConstraintName("FK_Tbl_Project_Event");
+
+            entity.HasOne(d => d.ModifiedByNavigation).WithMany(p => p.TblProjectModifiedByNavigations).HasConstraintName("FK_Tbl_Project_ModifiedBy");
 
             entity.HasOne(d => d.ProjectType).WithMany(p => p.TblProjects)
-                .HasForeignKey(d => d.ProjectTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Project_ProjectType");
+                .HasConstraintName("FK_Tbl_Project_Type");
         });
 
         modelBuilder.Entity<TblProjectType>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Tbl_Proj__3213E83FD8593E30");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+        });
 
-            entity.ToTable("Tbl_ProjectType");
+        modelBuilder.Entity<TblResult>(entity =>
+        {
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.TblResultCreatedByNavigations).HasConstraintName("FK_Tbl_Result_CreatedBy");
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CreateBy).HasColumnName("create_by");
-            entity.Property(e => e.CreateTime).HasColumnName("create_time");
-            entity.Property(e => e.DeleteFlag)
-                .HasDefaultValue(false)
-                .HasColumnName("delete_flag");
-            entity.Property(e => e.ModifyBy).HasColumnName("modify_by");
-            entity.Property(e => e.ModifyTime).HasColumnName("modify_time");
-            entity.Property(e => e.TypeName)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("type_name");
+            entity.HasOne(d => d.Event).WithMany(p => p.TblResults)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Tbl_Result_Event");
+
+            entity.HasOne(d => d.ModifiedByNavigation).WithMany(p => p.TblResultModifiedByNavigations).HasConstraintName("FK_Tbl_Result_ModifiedBy");
+
+            entity.HasOne(d => d.Project).WithMany(p => p.TblResults)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Tbl_Result_Project");
+
+            entity.HasOne(d => d.PublishedByNavigation).WithMany(p => p.TblResultPublishedByNavigations).HasConstraintName("FK_Tbl_Result_PublishedBy");
+
+            entity.HasOne(d => d.ReviewedByNavigation).WithMany(p => p.TblResultReviewedByNavigations).HasConstraintName("FK_Tbl_Result_ReviewedBy");
         });
 
         modelBuilder.Entity<TblRole>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Tbl_Role__3213E83F2CE4E5EA");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+        });
 
-            entity.ToTable("Tbl_Role");
+        modelBuilder.Entity<TblRolePermission>(entity =>
+        {
+            entity.HasOne(d => d.AssignedByNavigation).WithMany(p => p.TblRolePermissions).HasConstraintName("FK_Tbl_RolePermission_AssignedBy");
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CreateBy).HasColumnName("create_by");
-            entity.Property(e => e.CreateTime).HasColumnName("create_time");
-            entity.Property(e => e.DeleteFlag)
-                .HasDefaultValue(false)
-                .HasColumnName("delete_flag");
-            entity.Property(e => e.ModifyBy).HasColumnName("modify_by");
-            entity.Property(e => e.ModifyTime).HasColumnName("modify_time");
-            entity.Property(e => e.RoleName)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("role_name");
+            entity.HasOne(d => d.Permission).WithMany(p => p.TblRolePermissions)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Tbl_RolePermission_Permission");
 
-            entity.HasMany(d => d.Permissions).WithMany(p => p.Roles)
-                .UsingEntity<Dictionary<string, object>>(
-                    "TblRolePermission",
-                    r => r.HasOne<TblPermission>().WithMany()
-                        .HasForeignKey("PermissionId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_RolePermission_Permission"),
-                    l => l.HasOne<TblRole>().WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_RolePermission_Role"),
-                    j =>
-                    {
-                        j.HasKey("RoleId", "PermissionId").HasName("PK__Tbl_Role__C85A54633AEB6D0C");
-                        j.ToTable("Tbl_RolePermission");
-                        j.IndexerProperty<int>("RoleId").HasColumnName("role_id");
-                        j.IndexerProperty<int>("PermissionId").HasColumnName("permission_id");
-                    });
+            entity.HasOne(d => d.Role).WithMany(p => p.TblRolePermissions)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Tbl_RolePermission_Role");
         });
 
         modelBuilder.Entity<TblUser>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Tbl_User__3213E83F45E70DA9");
-
-            entity.ToTable("Tbl_User");
-
-            entity.HasIndex(e => e.Email, "UQ__Tbl_User__AB6E616493D9D00D").IsUnique();
-
-            entity.HasIndex(e => e.Username, "UQ__Tbl_User__F3DBC57279CEF857").IsUnique();
-
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CreateBy).HasColumnName("create_by");
-            entity.Property(e => e.CreateTime).HasColumnName("create_time");
-            entity.Property(e => e.DeleteFlag)
-                .HasDefaultValue(false)
-                .HasColumnName("delete_flag");
-            entity.Property(e => e.Email)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("email");
-            entity.Property(e => e.ModifyBy).HasColumnName("modify_by");
-            entity.Property(e => e.ModifyTime).HasColumnName("modify_time");
-            entity.Property(e => e.PasswordHash)
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("password_hash");
-            entity.Property(e => e.RoleId).HasColumnName("role_id");
-            entity.Property(e => e.Username)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("username");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
 
             entity.HasOne(d => d.Role).WithMany(p => p.TblUsers)
-                .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_User_Role");
+                .HasConstraintName("FK_Tbl_User_Role");
         });
 
-        modelBuilder.Entity<TblUserVoteLimit>(entity =>
+        modelBuilder.Entity<TblUserEvent>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Tbl_User__3213E83F8EF809E5");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
 
-            entity.ToTable("Tbl_UserVoteLimit");
+            entity.HasOne(d => d.AssignedByNavigation).WithMany(p => p.TblUserEventAssignedByNavigations).HasConstraintName("FK_Tbl_UserEvent_AssignedBy");
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CreateBy).HasColumnName("create_by");
-            entity.Property(e => e.CreateTime).HasColumnName("create_time");
-            entity.Property(e => e.DeleteFlag)
-                .HasDefaultValue(false)
-                .HasColumnName("delete_flag");
-            entity.Property(e => e.EventId).HasColumnName("event_id");
-            entity.Property(e => e.MaxVotes).HasColumnName("max_votes");
-            entity.Property(e => e.ModifyBy).HasColumnName("modify_by");
-            entity.Property(e => e.ModifyTime).HasColumnName("modify_time");
-            entity.Property(e => e.ProjectTypeId).HasColumnName("project_type_id");
-            entity.Property(e => e.UsedVotes)
-                .HasDefaultValue(0)
-                .HasColumnName("used_votes");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
-
-            entity.HasOne(d => d.Event).WithMany(p => p.TblUserVoteLimits)
-                .HasForeignKey(d => d.EventId)
+            entity.HasOne(d => d.Event).WithMany(p => p.TblUserEvents)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_UserVoteLimit_Event");
+                .HasConstraintName("FK_Tbl_UserEvent_Event");
 
-            entity.HasOne(d => d.ProjectType).WithMany(p => p.TblUserVoteLimits)
-                .HasForeignKey(d => d.ProjectTypeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_UserVoteLimit_ProjectType");
+            entity.HasOne(d => d.RemovedByNavigation).WithMany(p => p.TblUserEventRemovedByNavigations).HasConstraintName("FK_Tbl_UserEvent_RemovedBy");
 
-            entity.HasOne(d => d.User).WithMany(p => p.TblUserVoteLimits)
-                .HasForeignKey(d => d.UserId)
+            entity.HasOne(d => d.User).WithMany(p => p.TblUserEventUsers)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_UserVoteLimit_User");
+                .HasConstraintName("FK_Tbl_UserEvent_User");
         });
 
         modelBuilder.Entity<TblVote>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Tbl_Vote__3213E83FCF47B4D6");
-
-            entity.ToTable("Tbl_Vote");
-
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CreateBy).HasColumnName("create_by");
-            entity.Property(e => e.CreateTime).HasColumnName("create_time");
-            entity.Property(e => e.DeleteFlag)
-                .HasDefaultValue(false)
-                .HasColumnName("delete_flag");
-            entity.Property(e => e.EventId).HasColumnName("event_id");
-            entity.Property(e => e.ModifyBy).HasColumnName("modify_by");
-            entity.Property(e => e.ModifyTime).HasColumnName("modify_time");
-            entity.Property(e => e.ProjectId).HasColumnName("project_id");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
-
-            entity.HasOne(d => d.Event).WithMany(p => p.TblVotes)
-                .HasForeignKey(d => d.EventId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Vote_Event");
-
             entity.HasOne(d => d.Project).WithMany(p => p.TblVotes)
-                .HasForeignKey(d => d.ProjectId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Vote_Project");
+                .HasConstraintName("FK_Tbl_Vote_Project");
 
-            entity.HasOne(d => d.User).WithMany(p => p.TblVotes)
-                .HasForeignKey(d => d.UserId)
+            entity.HasOne(d => d.UserEvent).WithMany(p => p.TblVotes)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Vote_User");
+                .HasConstraintName("FK_Tbl_Vote_UserEvent");
+        });
+
+        modelBuilder.Entity<TblVotingLimit>(entity =>
+        {
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.TblVotingLimitCreatedByNavigations).HasConstraintName("FK_Tbl_VotingLimit_CreatedBy");
+
+            entity.HasOne(d => d.ModifiedByNavigation).WithMany(p => p.TblVotingLimitModifiedByNavigations).HasConstraintName("FK_Tbl_VotingLimit_ModifiedBy");
+
+            entity.HasOne(d => d.ProjectType).WithMany(p => p.TblVotingLimits)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Tbl_VotingLimit_ProjectType");
+
+            entity.HasOne(d => d.UserEvent).WithMany(p => p.TblVotingLimits)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Tbl_VotingLimit_UserEvent");
         });
 
         OnModelCreatingPartial(modelBuilder);

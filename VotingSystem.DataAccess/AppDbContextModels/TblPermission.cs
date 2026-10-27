@@ -1,23 +1,49 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace VotingSystem.DataAccess.AppDbContextModels;
 
+[Table("Tbl_Permission")]
+[Index("Code", Name = "UQ_Tbl_Permission_Code", IsUnique = true)]
 public partial class TblPermission
 {
+    [Key]
+    [Column("id")]
     public int Id { get; set; }
 
-    public string PermissionName { get; set; } = null!;
+    [Column("name")]
+    [StringLength(100)]
+    public string Name { get; set; } = null!;
 
-    public bool? DeleteFlag { get; set; }
+    [Column("code")]
+    [StringLength(100)]
+    public string Code { get; set; } = null!;
 
-    public DateTime? CreateTime { get; set; }
+    [Column("description")]
+    [StringLength(255)]
+    public string? Description { get; set; }
 
-    public int? CreateBy { get; set; }
+    [Column("is_active")]
+    public bool IsActive { get; set; }
 
-    public DateTime? ModifyTime { get; set; }
+    [Column("delete_flag")]
+    public bool DeleteFlag { get; set; }
 
-    public int? ModifyBy { get; set; }
+    [Column("created_at")]
+    public DateTime CreatedAt { get; set; }
 
-    public virtual ICollection<TblRole> Roles { get; set; } = new List<TblRole>();
+    [Column("created_by")]
+    public long? CreatedBy { get; set; }
+
+    [Column("modified_at")]
+    public DateTime? ModifiedAt { get; set; }
+
+    [Column("modified_by")]
+    public long? ModifiedBy { get; set; }
+
+    [InverseProperty("Permission")]
+    public virtual ICollection<TblRolePermission> TblRolePermissions { get; set; } = new List<TblRolePermission>();
 }

@@ -15,4 +15,8 @@
     <ProjectReference Include="..\VotingSystem.Domain\VotingSystem.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
 </Project>

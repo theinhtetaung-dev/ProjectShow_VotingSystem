@@ -1,31 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace VotingSystem.DataAccess.AppDbContextModels;
 
+[Table("Tbl_Vote")]
+[Index("ProjectId", Name = "IX_Tbl_Vote_ProjectId")]
+[Index("UserEventId", Name = "IX_Tbl_Vote_UserEventId")]
+[Index("UserEventId", "ProjectId", Name = "UQ_Tbl_Vote_UserEvent_Project", IsUnique = true)]
 public partial class TblVote
 {
-    public int Id { get; set; }
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
 
-    public int EventId { get; set; }
+    [Column("user_event_id")]
+    public long UserEventId { get; set; }
 
-    public int ProjectId { get; set; }
+    [Column("project_id")]
+    public long ProjectId { get; set; }
 
-    public int UserId { get; set; }
+    [Column("voted_at")]
+    public DateTime VotedAt { get; set; }
 
-    public bool? DeleteFlag { get; set; }
-
-    public DateTime? CreateTime { get; set; }
-
-    public int? CreateBy { get; set; }
-
-    public DateTime? ModifyTime { get; set; }
-
-    public int? ModifyBy { get; set; }
-
-    public virtual TblEvent Event { get; set; } = null!;
-
+    [ForeignKey("ProjectId")]
+    [InverseProperty("TblVotes")]
     public virtual TblProject Project { get; set; } = null!;
 
-    public virtual TblUser User { get; set; } = null!;
+    [ForeignKey("UserEventId")]
+    [InverseProperty("TblVotes")]
+    public virtual TblUserEvent UserEvent { get; set; } = null!;
 }

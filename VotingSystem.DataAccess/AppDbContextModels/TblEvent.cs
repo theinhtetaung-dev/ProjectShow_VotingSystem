@@ -1,37 +1,80 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace VotingSystem.DataAccess.AppDbContextModels;
 
+[Table("Tbl_Event")]
+[Index("Code", Name = "UQ_Tbl_Event_Code", IsUnique = true)]
 public partial class TblEvent
 {
-    public int Id { get; set; }
+    [Key]
+    [Column("id")]
+    public long Id { get; set; }
 
-    public string EventName { get; set; } = null!;
+    [Column("name")]
+    [StringLength(200)]
+    public string Name { get; set; } = null!;
 
+    [Column("code")]
+    [StringLength(100)]
+    public string Code { get; set; } = null!;
+
+    [Column("description")]
+    [StringLength(1000)]
     public string? Description { get; set; }
 
-    public DateTime? StartTime { get; set; }
+    [Column("event_start_at")]
+    public DateTime EventStartAt { get; set; }
 
-    public DateTime? EndTime { get; set; }
+    [Column("event_end_at")]
+    public DateTime EventEndAt { get; set; }
 
-    public bool? DeleteFlag { get; set; }
+    [Column("voting_start_at")]
+    public DateTime VotingStartAt { get; set; }
 
-    public DateTime? CreateTime { get; set; }
+    [Column("voting_end_at")]
+    public DateTime VotingEndAt { get; set; }
 
-    public int? CreateBy { get; set; }
+    [Column("result_show_start_at")]
+    public DateTime? ResultShowStartAt { get; set; }
 
-    public DateTime? ModifyTime { get; set; }
+    [Column("result_show_end_at")]
+    public DateTime? ResultShowEndAt { get; set; }
 
-    public int? ModifyBy { get; set; }
+    [Column("status")]
+    [StringLength(30)]
+    public string Status { get; set; } = null!;
 
-    public virtual ICollection<TblEventAdmin> TblEventAdmins { get; set; } = new List<TblEventAdmin>();
+    [Column("is_active")]
+    public bool IsActive { get; set; }
 
-    public virtual ICollection<TblEventUser> TblEventUsers { get; set; } = new List<TblEventUser>();
+    [Column("delete_flag")]
+    public bool DeleteFlag { get; set; }
 
+    [Column("created_at")]
+    public DateTime CreatedAt { get; set; }
+
+    [Column("created_by")]
+    public long? CreatedBy { get; set; }
+
+    [Column("modified_at")]
+    public DateTime? ModifiedAt { get; set; }
+
+    [Column("modified_by")]
+    public long? ModifiedBy { get; set; }
+
+    [InverseProperty("Event")]
+    public virtual ICollection<TblAdminEvent> TblAdminEvents { get; set; } = new List<TblAdminEvent>();
+
+    [InverseProperty("Event")]
     public virtual ICollection<TblProject> TblProjects { get; set; } = new List<TblProject>();
 
-    public virtual ICollection<TblUserVoteLimit> TblUserVoteLimits { get; set; } = new List<TblUserVoteLimit>();
+    [InverseProperty("Event")]
+    public virtual ICollection<TblResult> TblResults { get; set; } = new List<TblResult>();
 
-    public virtual ICollection<TblVote> TblVotes { get; set; } = new List<TblVote>();
+    [InverseProperty("Event")]
+    public virtual ICollection<TblUserEvent> TblUserEvents { get; set; } = new List<TblUserEvent>();
 }
