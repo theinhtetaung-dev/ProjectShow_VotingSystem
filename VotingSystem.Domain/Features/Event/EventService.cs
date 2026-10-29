@@ -9,7 +9,7 @@ using VotingSystem.DataAccess.AppDbContextModels;
 using VotingSystem.Shared;
 namespace VotingSystem.Domain.Features.Event;
 
-public class EventService
+public class EventService : IEventService
 {
     private readonly AppDbContext _dbContext;
 

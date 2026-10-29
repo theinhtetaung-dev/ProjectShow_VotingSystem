@@ -1,5 +1,6 @@
 using Serilog;
 using VotingSystem.Domain.Features;
+using VotingSystem.WebAPI.Controllers;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -17,7 +18,8 @@ try
         .Enrich.FromLogContext());
 
     // Add services to the container.
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .AddApplicationPart(typeof(EventController).Assembly);
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();

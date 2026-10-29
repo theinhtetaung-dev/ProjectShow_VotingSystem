@@ -6,11 +6,36 @@ using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace VotingSystem.Shared;
 
 public static class DevCode
 {
+    public static ActionResult<Result<T>> ToActionResult<T>(this Result<T> response)
+    {
+        if (response.IsValidationError())
+        {
+            return new BadRequestObjectResult(response);
+        }
+
+        if (response.IsNotFound())
+        {
+            return new NotFoundObjectResult(response);
+        }
+
+        if (response.IsSystemError())
+        {
+            return new ObjectResult(response)
+            {
+                StatusCode = StatusCodes.Status500InternalServerError
+            };
+        }
+
+        return new OkObjectResult(response);
+    }
+
     public static int ChangeToInt(this string value)
     {
         if (int.TryParse(value, out int result))
