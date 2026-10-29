@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
@@ -39,6 +40,14 @@ public static class DevCode
     public static bool IsPositive<T>(this T value) where T : INumber<T>
     {
         return value > T.Zero;
+    }
+
+    public static bool IsValidEmail(this string? value, int maxLength)
+    {
+        return !string.IsNullOrWhiteSpace(value)
+            && value.Length <= maxLength
+            && MailAddress.TryCreate(value, out var email)
+            && string.Equals(email.Address, value, StringComparison.OrdinalIgnoreCase);
     }
 
     public static Enums.EventStatus? ToEventStatus(this string? status)
