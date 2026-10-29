@@ -256,4 +256,273 @@ public class UserService : IUserService
         }
     }
     #endregion
+
+    #region Assign User To Event
+    public async Task<Result<UserEventResponseModel>> AssignUserToEventAsync(AssignUserToEventRequestModel request)
+    {
+        try
+        {
+            if (!request.UserId.IsPositive())
+            {
+                return Result<UserEventResponseModel>.ValidationError("User ID must be greater than zero.");
+            }
+
+            if (!request.EventId.IsPositive())
+            {
+                return Result<UserEventResponseModel>.ValidationError("Event ID must be greater than zero.");
+            }
+
+            if (!request.EventPasswordHash.IsValidRequiredString(500))
+            {
+                return Result<UserEventResponseModel>.ValidationError("Event password hash is required and must not exceed 500 characters.");
+            }
+
+            var currentTime = DateTime.UtcNow;
+            if (request.PasswordExpiresAt <= currentTime)
+            {
+                return Result<UserEventResponseModel>.ValidationError("Password expiry date must be later than the current date.");
+            }
+
+            var user = await _dbContext.TblUsers
+                .Include(x => x.Role)
+                .FirstOrDefaultAsync(x => x.Id == request.UserId && x.IsActive && !x.DeleteFlag);
+            if (user == null)
+            {
+                return Result<UserEventResponseModel>.ValidationError("User not found.");
+            }
+
+            if (user.Role.Name != "User")
+            {
+                return Result<UserEventResponseModel>.ValidationError("Only users with the User role can be assigned as event users.");
+            }
+
+            var eventExists = await _dbContext.TblEvents
+                .AnyAsync(x => x.Id == request.EventId && x.IsActive && !x.DeleteFlag);
+            if (!eventExists)
+            {
+                return Result<UserEventResponseModel>.ValidationError("Event not found.");
+            }
+
+            var assignedByExists = await _dbContext.TblUsers
+                .AnyAsync(x => x.Id == request.AssignedBy && x.IsActive && !x.DeleteFlag);
+            if (request.AssignedBy.HasValue && !assignedByExists)
+            {
+                return Result<UserEventResponseModel>.ValidationError("Assigned by user not found.");
+            }
+
+            var userEvent = await _dbContext.TblUserEvents
+                .FirstOrDefaultAsync(x => x.UserId == request.UserId && x.EventId == request.EventId);
+            if (userEvent != null && !userEvent.DeleteFlag)
+            {
+                return Result<UserEventResponseModel>.ValidationError("User is already assigned to this event.");
+            }
+
+            if (userEvent == null)
+            {
+                userEvent = new TblUserEvent
+                {
+                    UserId = request.UserId,
+                    EventId = request.EventId
+                };
+                _dbContext.TblUserEvents.Add(userEvent);
+            }
+
+            userEvent.EventPasswordHash = request.EventPasswordHash;
+            userEvent.AssignedAt = currentTime;
+            userEvent.AssignedBy = request.AssignedBy;
+            userEvent.PasswordGeneratedAt = currentTime;
+            userEvent.PasswordExpiresAt = request.PasswordExpiresAt;
+            userEvent.AccessStatus = "valid";
+            userEvent.RemovedAt = null;
+            userEvent.RemovedBy = null;
+            userEvent.IsActive = true;
+            userEvent.DeleteFlag = false;
+            await _dbContext.SaveChangesAsync();
+
+            var resModel = new UserEventResponseModel
+            {
+                Id = userEvent.Id,
+                UserId = userEvent.UserId,
+                EventId = userEvent.EventId,
+                AssignedAt = userEvent.AssignedAt,
+                AssignedBy = userEvent.AssignedBy,
+                PasswordGeneratedAt = userEvent.PasswordGeneratedAt,
+                PasswordExpiresAt = userEvent.PasswordExpiresAt,
+                AccessStatus = userEvent.AccessStatus
+            };
+            return Result<UserEventResponseModel>.Success(resModel, "User assigned to event successfully.");
+        }
+        catch (Exception ex)
+        {
+            return Result<UserEventResponseModel>.SystemError(ex.Message);
+        }
+    }
+    #endregion
+
+    #region Remove User From Event
+    public async Task<Result<UserEventResponseModel>> RemoveUserFromEventAsync(RemoveUserFromEventRequestModel request)
+    {
+        try
+        {
+            if (!request.UserId.IsPositive())
+            {
+                return Result<UserEventResponseModel>.ValidationError("User ID must be greater than zero.");
+            }
+
+            if (!request.EventId.IsPositive())
+            {
+                return Result<UserEventResponseModel>.ValidationError("Event ID must be greater than zero.");
+            }
+
+            var removedByExists = await _dbContext.TblUsers
+                .AnyAsync(x => x.Id == request.RemovedBy && x.IsActive && !x.DeleteFlag);
+            if (request.RemovedBy.HasValue && !removedByExists)
+            {
+                return Result<UserEventResponseModel>.ValidationError("Removed by user not found.");
+            }
+
+            var userEvent = await _dbContext.TblUserEvents
+                .FirstOrDefaultAsync(x => x.UserId == request.UserId
+                    && x.EventId == request.EventId
+                    && !x.DeleteFlag);
+            if (userEvent == null)
+            {
+                return Result<UserEventResponseModel>.NotFound("User event assignment not found.");
+            }
+
+            userEvent.AccessStatus = "expired";
+            userEvent.RemovedAt = DateTime.UtcNow;
+            userEvent.RemovedBy = request.RemovedBy;
+            userEvent.IsActive = false;
+            userEvent.DeleteFlag = true;
+            await _dbContext.SaveChangesAsync();
+
+            return Result<UserEventResponseModel>.DeleteSuccess("User removed from event successfully.");
+        }
+        catch (Exception ex)
+        {
+            return Result<UserEventResponseModel>.SystemError(ex.Message);
+        }
+    }
+    #endregion
+
+    #region Assign Admin To Event
+    public async Task<Result<AdminEventResponseModel>> AssignAdminToEventAsync(AssignAdminToEventRequestModel request)
+    {
+        try
+        {
+            if (!request.AdminUserId.IsPositive())
+            {
+                return Result<AdminEventResponseModel>.ValidationError("Admin user ID must be greater than zero.");
+            }
+
+            if (!request.EventId.IsPositive())
+            {
+                return Result<AdminEventResponseModel>.ValidationError("Event ID must be greater than zero.");
+            }
+
+            var adminUser = await _dbContext.TblUsers
+                .Include(x => x.Role)
+                .FirstOrDefaultAsync(x => x.Id == request.AdminUserId && x.IsActive && !x.DeleteFlag);
+            if (adminUser == null)
+            {
+                return Result<AdminEventResponseModel>.ValidationError("Admin user not found.");
+            }
+
+            var isAdmin = adminUser.Role.Name == "Admin" || adminUser.Role.Name == "SuperAdmin";
+            if (!isAdmin)
+            {
+                return Result<AdminEventResponseModel>.ValidationError("Only users with an Admin or SuperAdmin role can be assigned as event admins.");
+            }
+
+            var eventExists = await _dbContext.TblEvents
+                .AnyAsync(x => x.Id == request.EventId && x.IsActive && !x.DeleteFlag);
+            if (!eventExists)
+            {
+                return Result<AdminEventResponseModel>.ValidationError("Event not found.");
+            }
+
+            var assignedByExists = await _dbContext.TblUsers
+                .AnyAsync(x => x.Id == request.AssignedBy && x.IsActive && !x.DeleteFlag);
+            if (request.AssignedBy.HasValue && !assignedByExists)
+            {
+                return Result<AdminEventResponseModel>.ValidationError("Assigned by user not found.");
+            }
+
+            var adminEvent = await _dbContext.TblAdminEvents
+                .FirstOrDefaultAsync(x => x.AdminUserId == request.AdminUserId && x.EventId == request.EventId);
+            if (adminEvent != null && !adminEvent.DeleteFlag)
+            {
+                return Result<AdminEventResponseModel>.ValidationError("Admin is already assigned to this event.");
+            }
+
+            if (adminEvent == null)
+            {
+                adminEvent = new TblAdminEvent
+                {
+                    AdminUserId = request.AdminUserId,
+                    EventId = request.EventId
+                };
+                _dbContext.TblAdminEvents.Add(adminEvent);
+            }
+
+            adminEvent.AssignedAt = DateTime.UtcNow;
+            adminEvent.AssignedBy = request.AssignedBy;
+            adminEvent.IsActive = true;
+            adminEvent.DeleteFlag = false;
+            await _dbContext.SaveChangesAsync();
+
+            var resModel = new AdminEventResponseModel
+            {
+                Id = adminEvent.Id,
+                AdminUserId = adminEvent.AdminUserId,
+                EventId = adminEvent.EventId,
+                AssignedAt = adminEvent.AssignedAt,
+                AssignedBy = adminEvent.AssignedBy
+            };
+            return Result<AdminEventResponseModel>.Success(resModel, "Admin assigned to event successfully.");
+        }
+        catch (Exception ex)
+        {
+            return Result<AdminEventResponseModel>.SystemError(ex.Message);
+        }
+    }
+    #endregion
+
+    #region Remove Admin From Event
+    public async Task<Result<AdminEventResponseModel>> RemoveAdminFromEventAsync(RemoveAdminFromEventRequestModel request)
+    {
+        try
+        {
+            if (!request.AdminUserId.IsPositive())
+            {
+                return Result<AdminEventResponseModel>.ValidationError("Admin user ID must be greater than zero.");
+            }
+
+            if (!request.EventId.IsPositive())
+            {
+                return Result<AdminEventResponseModel>.ValidationError("Event ID must be greater than zero.");
+            }
+
+            var adminEvent = await _dbContext.TblAdminEvents
+                .FirstOrDefaultAsync(x => x.AdminUserId == request.AdminUserId
+                    && x.EventId == request.EventId
+                    && !x.DeleteFlag);
+            if (adminEvent == null)
+            {
+                return Result<AdminEventResponseModel>.NotFound("Admin event assignment not found.");
+            }
+
+            adminEvent.IsActive = false;
+            adminEvent.DeleteFlag = true;
+            await _dbContext.SaveChangesAsync();
+
+            return Result<AdminEventResponseModel>.DeleteSuccess("Admin removed from event successfully.");
+        }
+        catch (Exception ex)
+        {
+            return Result<AdminEventResponseModel>.SystemError(ex.Message);
+        }
+    }
+    #endregion
 }
