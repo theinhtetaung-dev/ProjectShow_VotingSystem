@@ -172,24 +172,18 @@ public class UserService : IUserService
                 return Result<UserResponseModel>.ValidationError("Role ID must be greater than zero.");
             }
 
-            if (request.Email != null)
+            var emailExists = await _dbContext.TblUsers
+                .AnyAsync(x => x.Email == request.Email && x.Id != request.Id);
+            if (request.Email != null && emailExists)
             {
-                var emailExists = await _dbContext.TblUsers
-                    .AnyAsync(x => x.Email == request.Email && x.Id != request.Id);
-                if (emailExists)
-                {
-                    return Result<UserResponseModel>.ValidationError("Email already exists.");
-                }
+                return Result<UserResponseModel>.ValidationError("Email already exists.");
             }
 
-            if (request.RoleId.HasValue)
+            var roleExists = await _dbContext.TblRoles
+                .AnyAsync(x => x.Id == request.RoleId && !x.DeleteFlag);
+            if (request.RoleId.HasValue && !roleExists)
             {
-                var roleExists = await _dbContext.TblRoles
-                    .AnyAsync(x => x.Id == request.RoleId.Value && !x.DeleteFlag);
-                if (!roleExists)
-                {
-                    return Result<UserResponseModel>.ValidationError("Role not found.");
-                }
+                return Result<UserResponseModel>.ValidationError("Role not found.");
             }
 
             if (request.Email != null)
