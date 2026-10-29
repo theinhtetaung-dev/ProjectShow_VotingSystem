@@ -81,22 +81,22 @@ public class ProjectService : IProjectService
     {
         try
         {
-            if (!request.Name.IsValidProjectName())
+            if (!request.Name.IsValidRequiredString(200))
             {
                 return Result<ProjectResponseModel>.ValidationError("Name is required and must not exceed 200 characters.");
             }
 
-            if (!request.Description.IsValidDescription())
+            if (!request.Description.IsValidOptionalString(1000))
             {
                 return Result<ProjectResponseModel>.ValidationError("Description must not exceed 1000 characters.");
             }
 
-            if (!request.EventId.IsValidEventId())
+            if (!request.EventId.IsPositive())
             {
                 return Result<ProjectResponseModel>.ValidationError("Event ID must be greater than zero.");
             }
 
-            if (!request.ProjectTypeId.IsValidProjectTypeId())
+            if (!request.ProjectTypeId.IsPositive())
             {
                 return Result<ProjectResponseModel>.ValidationError("Project type ID must be greater than zero.");
             }
@@ -155,22 +155,22 @@ public class ProjectService : IProjectService
                 return Result<ProjectResponseModel>.NotFound("Item Not Found!");
             }
 
-            if (request.Name != null && !request.Name.IsValidProjectName())
+            if (request.Name != null && !request.Name.IsValidRequiredString(200))
             {
                 return Result<ProjectResponseModel>.ValidationError("Name is required and must not exceed 200 characters.");
             }
 
-            if (request.Description != null && !request.Description.IsValidDescription())
+            if (request.Description != null && !request.Description.IsValidOptionalString(1000))
             {
                 return Result<ProjectResponseModel>.ValidationError("Description must not exceed 1000 characters.");
             }
 
-            if (request.EventId.HasValue && !request.EventId.Value.IsValidEventId())
+            if (request.EventId.HasValue && !request.EventId.Value.IsPositive())
             {
                 return Result<ProjectResponseModel>.ValidationError("Event ID must be greater than zero.");
             }
 
-            if (request.ProjectTypeId.HasValue && !request.ProjectTypeId.Value.IsValidProjectTypeId())
+            if (request.ProjectTypeId.HasValue && !request.ProjectTypeId.Value.IsPositive())
             {
                 return Result<ProjectResponseModel>.ValidationError("Project type ID must be greater than zero.");
             }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,11 +9,6 @@ namespace VotingSystem.Shared;
 
 public static class DevCode
 {
-    public static bool IsPositiveInt(this int value)
-    {
-        return value > 0;
-    }
-
     public static int ChangeToInt(this string value)
     {
         if (int.TryParse(value, out int result))
@@ -30,19 +26,19 @@ public static class DevCode
         return int.TryParse(value, out _);
     }
 
-    public static bool IsValidEventName(this string? name)
+    public static bool IsValidRequiredString(this string? value, int maxLength)
     {
-        return !string.IsNullOrWhiteSpace(name) && name.Length <= 200;
+        return !string.IsNullOrWhiteSpace(value) && value.Length <= maxLength;
     }
 
-    public static bool IsValidDescription(this string? description)
+    public static bool IsValidOptionalString(this string? value, int maxLength)
     {
-        return description == null || description.Length <= 1000;
+        return value == null || value.Length <= maxLength;
     }
 
-    public static bool IsValidEventCode(this string? code)
+    public static bool IsPositive<T>(this T value) where T : INumber<T>
     {
-        return !string.IsNullOrWhiteSpace(code) && code.Length <= 100;
+        return value > T.Zero;
     }
 
     public static Enums.EventStatus? ToEventStatus(this string? status)

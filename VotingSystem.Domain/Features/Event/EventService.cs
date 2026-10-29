@@ -97,12 +97,12 @@ public class EventService
         try
         {
             var eventStatus = request.Status.ToEventStatus();
-            if (!request.Name.IsValidEventName())
+            if (!request.Name.IsValidRequiredString(200))
             {
                 return Result<EventResponseModel>.ValidationError("Name is required and must not exceed 200 characters.");
             }
 
-            if (!request.Description.IsValidDescription())
+            if (!request.Description.IsValidOptionalString(1000))
             {
                 return Result<EventResponseModel>.ValidationError("Description must not exceed 1000 characters.");
             }
@@ -135,7 +135,7 @@ public class EventService
                 return Result<EventResponseModel>.ValidationError("Status must be Upcoming, Active, Ended, or Published.");
             }
 
-            if (!request.Code.IsValidEventCode())
+            if (!request.Code.IsValidRequiredString(100))
             {
                 return Result<EventResponseModel>.ValidationError("Code is required and must not exceed 100 characters.");
             }
@@ -199,12 +199,12 @@ public class EventService
             }
 
             var eventStatus = request.Status.ToEventStatus();
-            if (request.Name != null && !request.Name.IsValidEventName())
+            if (request.Name != null && !request.Name.IsValidRequiredString(200))
             {
                 return Result<EventResponseModel>.ValidationError("Name is required and must not exceed 200 characters.");
             }
 
-            if (request.Description != null && !request.Description.IsValidDescription())
+            if (request.Description != null && !request.Description.IsValidOptionalString(1000))
             {
                 return Result<EventResponseModel>.ValidationError("Description must not exceed 1000 characters.");
             }
@@ -247,7 +247,7 @@ public class EventService
                 return Result<EventResponseModel>.ValidationError("Status must be Upcoming, Active, Ended, or Published.");
             }
 
-            if (request.Code != null && !request.Code.IsValidEventCode())
+            if (request.Code != null && !request.Code.IsValidRequiredString(100))
             {
                 return Result<EventResponseModel>.ValidationError("Code is required and must not exceed 100 characters.");
             }
