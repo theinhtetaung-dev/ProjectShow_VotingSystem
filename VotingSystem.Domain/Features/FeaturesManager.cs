@@ -11,6 +11,14 @@ using VotingSystem.DataAccess.Auditing;
 using VotingSystem.DataAccess.AppDbContextModels;
 using VotingSystem.Domain.Features.AuditLog;
 using VotingSystem.Domain.Features.Event;
+using VotingSystem.Domain.Features.Permission;
+using VotingSystem.Domain.Features.Project;
+using VotingSystem.Domain.Features.ProjectType;
+using VotingSystem.Domain.Features.Result;
+using VotingSystem.Domain.Features.Role;
+using VotingSystem.Domain.Features.RolePermission;
+using VotingSystem.Domain.Features.User;
+using VotingSystem.Domain.Features.Voting;
 
 namespace VotingSystem.Domain.Features;
 
@@ -24,5 +32,13 @@ public static class FeaturesManager
         builder.Services.AddScoped<IAuditActorProvider, HttpContextAuditActorProvider>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
         builder.Services.AddScoped<IEventService, EventService>();
+        builder.Services.AddScoped<IProjectService, ProjectService>();
+        builder.Services.AddScoped<IProjectTypeService, ProjectTypeService>();
+        builder.Services.AddScoped<IUserService, UserService>();
+        builder.Services.AddScoped<IVotingService, VotingService>();
+        builder.Services.AddScoped<IResultService, ResultService>();
+        builder.Services.AddScoped<IRoleService, RoleService>();
+        builder.Services.AddScoped<IPermissionService, PermissionService>();
+        builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
     }
 }
