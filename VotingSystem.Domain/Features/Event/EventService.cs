@@ -140,7 +140,9 @@ public class EventService
                 return Result<EventResponseModel>.ValidationError("Code is required and must not exceed 100 characters.");
             }
 
-            if (await _dbContext.TblEvents.AnyAsync(x => x.Code == request.Code))
+            var codeExists = await _dbContext.TblEvents
+                .AnyAsync(x => x.Code == request.Code);
+            if (codeExists)
             {
                 return Result<EventResponseModel>.ValidationError("Event code already exists.");
             }
@@ -252,10 +254,14 @@ public class EventService
                 return Result<EventResponseModel>.ValidationError("Code is required and must not exceed 100 characters.");
             }
 
-            if (request.Code != null
-                && await _dbContext.TblEvents.AnyAsync(x => x.Code == request.Code && x.Id != request.Id))
+            if (request.Code != null)
             {
-                return Result<EventResponseModel>.ValidationError("Event code already exists.");
+                var codeExists = await _dbContext.TblEvents
+                    .AnyAsync(x => x.Code == request.Code && x.Id != request.Id);
+                if (codeExists)
+                {
+                    return Result<EventResponseModel>.ValidationError("Event code already exists.");
+                }
             }
 
             if (request.Name != null)

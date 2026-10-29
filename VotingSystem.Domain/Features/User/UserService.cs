@@ -97,12 +97,16 @@ public class UserService : IUserService
                 return Result<UserResponseModel>.ValidationError("Role ID must be greater than zero.");
             }
 
-            if (await _dbContext.TblUsers.AnyAsync(x => x.Email == request.Email))
+            var emailExists = await _dbContext.TblUsers
+                .AnyAsync(x => x.Email == request.Email);
+            if (emailExists)
             {
                 return Result<UserResponseModel>.ValidationError("Email already exists.");
             }
 
-            if (!await _dbContext.TblRoles.AnyAsync(x => x.Id == request.RoleId && !x.DeleteFlag))
+            var roleExists = await _dbContext.TblRoles
+                .AnyAsync(x => x.Id == request.RoleId && !x.DeleteFlag);
+            if (!roleExists)
             {
                 return Result<UserResponseModel>.ValidationError("Role not found.");
             }
@@ -168,16 +172,24 @@ public class UserService : IUserService
                 return Result<UserResponseModel>.ValidationError("Role ID must be greater than zero.");
             }
 
-            if (request.Email != null
-                && await _dbContext.TblUsers.AnyAsync(x => x.Email == request.Email && x.Id != request.Id))
+            if (request.Email != null)
             {
-                return Result<UserResponseModel>.ValidationError("Email already exists.");
+                var emailExists = await _dbContext.TblUsers
+                    .AnyAsync(x => x.Email == request.Email && x.Id != request.Id);
+                if (emailExists)
+                {
+                    return Result<UserResponseModel>.ValidationError("Email already exists.");
+                }
             }
 
-            if (request.RoleId.HasValue
-                && !await _dbContext.TblRoles.AnyAsync(x => x.Id == request.RoleId.Value && !x.DeleteFlag))
+            if (request.RoleId.HasValue)
             {
-                return Result<UserResponseModel>.ValidationError("Role not found.");
+                var roleExists = await _dbContext.TblRoles
+                    .AnyAsync(x => x.Id == request.RoleId.Value && !x.DeleteFlag);
+                if (!roleExists)
+                {
+                    return Result<UserResponseModel>.ValidationError("Role not found.");
+                }
             }
 
             if (request.Email != null)

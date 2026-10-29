@@ -101,12 +101,16 @@ public class ProjectService : IProjectService
                 return Result<ProjectResponseModel>.ValidationError("Project type ID must be greater than zero.");
             }
 
-            if (!await _dbContext.TblEvents.AnyAsync(x => x.Id == request.EventId && !x.DeleteFlag))
+            var eventExists = await _dbContext.TblEvents
+                .AnyAsync(x => x.Id == request.EventId && !x.DeleteFlag);
+            if (!eventExists)
             {
                 return Result<ProjectResponseModel>.ValidationError("Event not found.");
             }
 
-            if (!await _dbContext.TblProjectTypes.AnyAsync(x => x.Id == request.ProjectTypeId && !x.DeleteFlag))
+            var projectTypeExists = await _dbContext.TblProjectTypes
+                .AnyAsync(x => x.Id == request.ProjectTypeId && !x.DeleteFlag);
+            if (!projectTypeExists)
             {
                 return Result<ProjectResponseModel>.ValidationError("Project type not found.");
             }
@@ -175,14 +179,16 @@ public class ProjectService : IProjectService
                 return Result<ProjectResponseModel>.ValidationError("Project type ID must be greater than zero.");
             }
 
-            if (request.EventId.HasValue
-                && !await _dbContext.TblEvents.AnyAsync(x => x.Id == request.EventId.Value && !x.DeleteFlag))
+            var eventExists = await _dbContext.TblEvents
+                .AnyAsync(x => x.Id == request.EventId && !x.DeleteFlag);
+            if (request.EventId.HasValue && !eventExists)
             {
                 return Result<ProjectResponseModel>.ValidationError("Event not found.");
             }
 
-            if (request.ProjectTypeId.HasValue
-                && !await _dbContext.TblProjectTypes.AnyAsync(x => x.Id == request.ProjectTypeId.Value && !x.DeleteFlag))
+            var projectTypeExists = await _dbContext.TblProjectTypes
+                .AnyAsync(x => x.Id == request.ProjectTypeId && !x.DeleteFlag);
+            if (request.ProjectTypeId.HasValue && !projectTypeExists)
             {
                 return Result<ProjectResponseModel>.ValidationError("Project type not found.");
             }
