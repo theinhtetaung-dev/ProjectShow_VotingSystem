@@ -1,4 +1,5 @@
 using Serilog;
+using Scalar.AspNetCore;
 using VotingSystem.Domain.Features;
 using VotingSystem.WebAPI.Controllers;
 
@@ -20,7 +21,6 @@ try
     // Add services to the container.
     builder.Services.AddControllers()
         .AddApplicationPart(typeof(EventController).Assembly);
-    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
     builder.AddDomain();
@@ -38,8 +38,9 @@ try
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
-        app.UseSwagger();
-        app.UseSwaggerUI();
+        app.MapSwagger("/openapi/{documentName}.json");
+        app.MapScalarApiReference(options =>
+            options.WithTitle("Voting System API"));
     }
 
     app.UseHttpsRedirection();
