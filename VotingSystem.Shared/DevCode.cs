@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Mail;
 using System.Numerics;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace VotingSystem.Shared;
@@ -53,6 +54,12 @@ public static class DevCode
             && value.Length <= maxLength
             && MailAddress.TryCreate(value, out var email)
             && string.Equals(email.Address, value, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static bool IsValidPermissionName(this string? value)
+    {
+        return value.IsValidRequiredString(100)
+            && Regex.IsMatch(value!, "^[A-Z][A-Za-z0-9]*\\.[A-Z][A-Za-z0-9]*$");
     }
 
     public static Enums.EventStatus? ToEventStatus(this string? status)

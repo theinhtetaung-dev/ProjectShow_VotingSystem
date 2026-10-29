@@ -164,7 +164,7 @@ public partial class AppDbContext
     {
         if (entry.State == EntityState.Added)
         {
-            if (entry.Entity is TblUserEvent or TblAdminEvent)
+            if (entry.Entity is TblUserEvent or TblAdminEvent or TblRolePermission)
             {
                 return "Assign";
             }
@@ -195,10 +195,14 @@ public partial class AppDbContext
             var isDeleted = deleteFlag.CurrentValue is true;
             if (!wasDeleted && isDeleted)
             {
-                return entry.Entity is TblUserEvent or TblAdminEvent ? "Remove" : "Delete";
+                return entry.Entity is TblUserEvent or TblAdminEvent or TblRolePermission
+                    ? "Remove"
+                    : "Delete";
             }
 
-            if (wasDeleted && !isDeleted && entry.Entity is TblUserEvent or TblAdminEvent)
+            if (wasDeleted
+                && !isDeleted
+                && entry.Entity is TblUserEvent or TblAdminEvent or TblRolePermission)
             {
                 return "Assign";
             }
