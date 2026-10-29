@@ -42,6 +42,11 @@ public static class DevCode
         return value > T.Zero;
     }
 
+    public static bool IsNonNegative<T>(this T value) where T : INumber<T>
+    {
+        return value >= T.Zero;
+    }
+
     public static bool IsValidEmail(this string? value, int maxLength)
     {
         return !string.IsNullOrWhiteSpace(value)
