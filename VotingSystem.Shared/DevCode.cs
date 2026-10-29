@@ -69,6 +69,20 @@ public static class DevCode
         return status.HasValue && Enum.IsDefined(status.Value);
     }
 
+    public static Enums.ResultStatus? ToResultStatus(this string? status)
+    {
+        return Enum.TryParse<Enums.ResultStatus>(status, false, out var resultStatus)
+            && Enum.IsDefined(resultStatus)
+            && string.Equals(resultStatus.ToString(), status, StringComparison.Ordinal)
+                ? resultStatus
+                : null;
+    }
+
+    public static bool IsValidResultStatus(this Enums.ResultStatus status)
+    {
+        return Enum.IsDefined(status);
+    }
+
     public static bool IsValidEventDate(this DateTime eventEndAt, DateTime eventStartAt)
     {
         return eventEndAt > eventStartAt;

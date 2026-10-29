@@ -15,4 +15,12 @@ public static class Enums
         Ended,
         Published
     }
+
+    public enum ResultStatus
+    {
+        first_prize,
+        second_prize,
+        third_prize,
+        normal
+    }
 }

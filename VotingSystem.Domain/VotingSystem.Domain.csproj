@@ -18,7 +18,6 @@
   <ItemGroup>
     <Folder Include="Features\User\" />
     <Folder Include="Features\Project\" />
-    <Folder Include="ProjectType\" />
   </ItemGroup>
 
 </Project>
