@@ -27,7 +27,7 @@ public static class FeaturesManager
     public static void AddDomain(this WebApplicationBuilder builder)
     {
         builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection")));
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IAuditActorProvider, HttpContextAuditActorProvider>();
         builder.Services.AddScoped<IAuditLogService, AuditLogService>();
