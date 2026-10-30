@@ -10,6 +10,7 @@
   <Project Path="VotingSystem.Console/VotingSystem.Console.csproj" Id="a0d95979-ff80-488e-bbd4-cb5a5f148846" />
   <Project Path="VotingSystem.DataAccess/VotingSystem.DataAccess.csproj" />
   <Project Path="VotingSystem.Domain/VotingSystem.Domain.csproj" />
+  <Project Path="VotingSystem.MVC/VotingSystem.MVC.csproj" Id="0b8b064b-f531-4f21-9131-c5394ac9a10c" />
   <Project Path="VotingSystem.Shared/VotingSystem.Shared.csproj" Id="f4c9514f-4ff1-49e5-bf9f-e785b3fb2d98" />
   <Project Path="VotingSystem.WebAPI/VotingSystem.WebAPI.csproj" />
 </Solution>
