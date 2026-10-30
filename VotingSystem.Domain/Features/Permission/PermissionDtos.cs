@@ -17,7 +17,6 @@ public class PermissionDtos
 public class PermissionCreateRequestModel
 {
     public string Name { get; set; } = null!;
-    public string Code { get; set; } = null!;
     public string? Description { get; set; }
 }
 
@@ -25,7 +24,6 @@ public class PermissionUpdateRequestModel
 {
     public int Id { get; set; }
     public string? Name { get; set; }
-    public string? Code { get; set; }
     public string? Description { get; set; }
 }
 

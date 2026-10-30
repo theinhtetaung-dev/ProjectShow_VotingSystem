@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using VotingSystem.DataAccess.AppDbContextModels;
 using VotingSystem.Shared;
@@ -82,27 +83,29 @@ public class PermissionService : IPermissionService
                 return Result<PermissionResponseModel>.ValidationError("Permission name must use Resource.Action format and must not exceed 100 characters.");
             }
 
-            if (!request.Code.IsValidRequiredString(100))
-            {
-                return Result<PermissionResponseModel>.ValidationError("Code is required and must not exceed 100 characters.");
-            }
-
             if (!request.Description.IsValidOptionalString(255))
             {
                 return Result<PermissionResponseModel>.ValidationError("Description must not exceed 255 characters.");
             }
 
-            var codeExists = await _dbContext.TblPermissions
-                .AnyAsync(x => x.Code == request.Code);
-            if (codeExists)
-            {
-                return Result<PermissionResponseModel>.ValidationError("Permission code already exists.");
-            }
+            await using var transaction = await _dbContext.Database
+                .BeginTransactionAsync(IsolationLevel.Serializable);
+
+            var existingCodes = await _dbContext.TblPermissions
+                .Where(x => x.Code.StartsWith("Per-"))
+                .Select(x => x.Code)
+                .ToListAsync();
+
+            var nextNumber = existingCodes
+                .Select(code => int.TryParse(code[4..], out var number) ? number : 0)
+                .DefaultIfEmpty()
+                .Max() + 1;
+            var permissionCode = $"Per-{nextNumber:D4}";
 
             var newPermission = new TblPermission
             {
                 Name = request.Name,
-                Code = request.Code,
+                Code = permissionCode,
                 Description = request.Description,
                 IsActive = true,
                 DeleteFlag = false,
@@ -110,6 +113,7 @@ public class PermissionService : IPermissionService
             };
             _dbContext.TblPermissions.Add(newPermission);
             await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             var resModel = new PermissionResponseModel
             {
@@ -144,31 +148,14 @@ public class PermissionService : IPermissionService
                 return Result<PermissionResponseModel>.ValidationError("Permission name must use Resource.Action format and must not exceed 100 characters.");
             }
 
-            if (request.Code != null && !request.Code.IsValidRequiredString(100))
-            {
-                return Result<PermissionResponseModel>.ValidationError("Code is required and must not exceed 100 characters.");
-            }
-
             if (request.Description != null && !request.Description.IsValidOptionalString(255))
             {
                 return Result<PermissionResponseModel>.ValidationError("Description must not exceed 255 characters.");
             }
 
-            var codeExists = await _dbContext.TblPermissions
-                .AnyAsync(x => x.Code == request.Code && x.Id != request.Id);
-            if (request.Code != null && codeExists)
-            {
-                return Result<PermissionResponseModel>.ValidationError("Permission code already exists.");
-            }
-
             if (request.Name != null)
             {
                 permission.Name = request.Name;
-            }
-
-            if (request.Code != null)
-            {
-                permission.Code = request.Code;
             }
 
             if (request.Description != null)
@@ -177,7 +164,6 @@ public class PermissionService : IPermissionService
             }
 
             var hasUpdates = request.Name != null
-                || request.Code != null
                 || request.Description != null;
             if (hasUpdates)
             {
