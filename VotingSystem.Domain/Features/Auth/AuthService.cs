@@ -334,7 +334,11 @@ public sealed class AuthService : IAuthService
             AccessToken = accessToken,
             AccessTokenExpiresAt = accessTokenExpiresAt,
             RefreshToken = refreshToken,
-            RefreshTokenExpiresAt = refreshExpiresAt
+            RefreshTokenExpiresAt = refreshExpiresAt,
+            UserId = user.Id,
+            Email = user.Email,
+            Name = user.Name,
+            Role = user.Role.Name
         };
     }
 

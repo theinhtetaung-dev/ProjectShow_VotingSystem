@@ -1,5 +1,6 @@
 using Serilog;
 using Scalar.AspNetCore;
+using Microsoft.AspNetCore.DataProtection;
 using VotingSystem.Domain.Features;
 using VotingSystem.WebAPI.Controllers;
 
@@ -23,6 +24,9 @@ try
         .AddApplicationPart(typeof(EventController).Assembly);
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(
+            Path.Combine(builder.Environment.ContentRootPath, ".keys")));
     builder.AddDomain();
 
     var app = builder.Build();
@@ -38,15 +42,29 @@ try
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
-        app.MapSwagger("/openapi/{documentName}.json");
+        app.MapSwagger("/openapi/{documentName}.json")
+            .AllowAnonymous();
         app.MapScalarApiReference(options =>
-            options.WithTitle("Voting System API"));
+            options.WithTitle("Voting System API"))
+            .AllowAnonymous();
     }
 
-    app.UseHttpsRedirection();
+    // MVC uses the local HTTP endpoint during development. Redirecting that request
+    // to another scheme/port can remove its Bearer Authorization header.
+    if (!app.Environment.IsDevelopment())
+    {
+        app.UseHttpsRedirection();
+    }
 
     app.UseAuthentication();
     app.UseAuthorization();
+
+    app.MapGet("/health", () => Results.Ok(new
+    {
+        status = "Healthy",
+        service = "Voting System API",
+        utcTime = DateTime.UtcNow
+    })).AllowAnonymous();
 
     app.MapControllers();
 

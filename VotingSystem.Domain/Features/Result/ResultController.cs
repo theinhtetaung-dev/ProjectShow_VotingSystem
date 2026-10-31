@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using VotingSystem.Domain.Features.Result;
 using VotingSystem.Shared;
 
@@ -6,6 +7,7 @@ namespace VotingSystem.WebAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = "SuperAdmin,Admin,User")]
 public class ResultController : ControllerBase
 {
     private readonly IResultService _resultService;
@@ -30,6 +32,7 @@ public class ResultController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public async Task<ActionResult<Result<ResultResponseModel>>> CreateResult(
         [FromBody] ResultCreateRequestModel request)
     {
@@ -38,6 +41,7 @@ public class ResultController : ControllerBase
     }
 
     [HttpPatch]
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public async Task<ActionResult<Result<ResultResponseModel>>> UpdateResult(
         [FromBody] ResultUpdateRequestModel request)
     {

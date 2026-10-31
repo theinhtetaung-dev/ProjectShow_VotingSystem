@@ -3,9 +3,9 @@
     ViewData["Title"] = "Events";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="page-toolbar mb-3">
     <h1 class="h2 mb-0">Events</h1>
-    <a asp-action="Create" class="btn btn-primary">Create event</a>
+    <a asp-action="Create" class="btn btn-primary"><svg class="app-icon"><use href="#icon-plus" /></svg><span>Create event</span></a>
 </div>
 
 @if (TempData["SuccessMessage"] is string success)
@@ -29,8 +29,8 @@
 }
 else
 {
-    <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle">
+    <div class="table-responsive mobile-table-shell">
+        <table class="table table-striped table-hover align-middle mobile-card-table">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -44,14 +44,14 @@ else
             @foreach (var item in Model)
             {
                 <tr>
-                    <td>@item.Name</td>
-                    <td>@item.Code</td>
-                    <td>@item.EventStartAt.ToString("g") – @item.EventEndAt.ToString("g")</td>
-                    <td><span class="badge bg-secondary">@item.Status</span></td>
-                    <td class="text-end text-nowrap">
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Details</a>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                    <td data-label="Name"><strong class="mobile-primary">@item.Name</strong></td>
+                    <td data-label="Code">@item.Code</td>
+                    <td data-label="Event dates"><span class="date-range"><span>@item.EventStartAt.ToString("g")</span><span aria-hidden="true">–</span><span>@item.EventEndAt.ToString("g")</span></span></td>
+                    <td data-label="Status"><span class="badge bg-secondary">@item.Status</span></td>
+                    <td data-label="Actions" class="table-actions text-end text-nowrap">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" aria-label="View @item.Name"><svg class="app-icon"><use href="#icon-eye" /></svg><span>Details</span></a>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" aria-label="Edit @item.Name"><svg class="app-icon"><use href="#icon-edit" /></svg><span>Edit</span></a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" aria-label="Delete @item.Name"><svg class="app-icon"><use href="#icon-trash" /></svg><span>Delete</span></a>
                     </td>
                 </tr>
             }

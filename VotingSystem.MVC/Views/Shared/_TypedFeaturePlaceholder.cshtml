@@ -2,4 +2,4 @@
 @model object
 @if (TempData["SuccessMessage"] is string success) { <div class="alert alert-success">@success</div> }
 @if (TempData["ErrorMessage"] is string error) { <div class="alert alert-danger">@error</div> }
-<div class="card"><div class="card-body"><pre class="mb-0">@JsonSerializer.Serialize(Model, new JsonSerializerOptions { WriteIndented = true })</pre></div></div>
+<div class="card data-preview"><div class="card-body"><pre class="mb-0">@JsonSerializer.Serialize(Model, new JsonSerializerOptions { WriteIndented = true })</pre></div></div>

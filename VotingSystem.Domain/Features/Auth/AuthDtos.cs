@@ -24,6 +24,10 @@ public sealed class AuthResponseModel
     public DateTime AccessTokenExpiresAt { get; set; }
     public string RefreshToken { get; set; } = null!;
     public DateTime RefreshTokenExpiresAt { get; set; }
+    public long UserId { get; set; }
+    public string Email { get; set; } = null!;
+    public string Name { get; set; } = null!;
+    public string Role { get; set; } = null!;
 }
 
 public sealed class LogoutResponseModel

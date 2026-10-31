@@ -128,7 +128,7 @@ public class VotingService : IVotingService
     #endregion
 
     #region Vote
-    public async Task<Result<VoteResponseModel>> VoteAsync(VoteRequestModel request)
+    public async Task<Result<VoteResponseModel>> VoteAsync(VoteRequestModel request, long authenticatedUserId)
     {
         try
         {
@@ -146,7 +146,9 @@ public class VotingService : IVotingService
             }
 
             var userEvent = await _dbContext.TblUserEvents
-                .FirstOrDefaultAsync(x => x.Id == request.UserEventId && !x.DeleteFlag);
+                .FirstOrDefaultAsync(x => x.Id == request.UserEventId
+                    && x.UserId == authenticatedUserId
+                    && !x.DeleteFlag);
             if (userEvent == null)
             {
                 return Result<VoteResponseModel>.ValidationError("User event not found.");

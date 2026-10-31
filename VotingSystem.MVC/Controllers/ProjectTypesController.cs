@@ -1,9 +1,11 @@
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VotingSystem.MVC.Models;
 
 namespace VotingSystem.MVC.Controllers;
 
+[Authorize(Roles = "SuperAdmin,Admin")]
 public class ProjectTypesController : Controller
 {
     private const string ProjectTypeApiUrl = "api/ProjectType";

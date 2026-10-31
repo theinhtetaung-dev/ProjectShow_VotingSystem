@@ -1,0 +1,13 @@
+@{
+    ViewData["Title"] = "Access denied";
+}
+
+<div class="auth-shell">
+    <div class="auth-card text-center">
+        <span class="auth-icon mx-auto mb-3"><svg class="app-icon"><use href="#icon-shield" /></svg></span>
+        <p class="eyebrow mb-2">Authorization</p>
+        <h1 class="h3">Access denied</h1>
+        <p class="text-muted">Your account does not have permission to open this page.</p>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-2">Return to dashboard</a>
+    </div>
+</div>

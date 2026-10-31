@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using VotingSystem.Domain.Features.Event;
 using VotingSystem.Shared;
 
@@ -7,6 +8,7 @@ namespace VotingSystem.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public class EventController : ControllerBase
     {
         private readonly IEventService _eventService;

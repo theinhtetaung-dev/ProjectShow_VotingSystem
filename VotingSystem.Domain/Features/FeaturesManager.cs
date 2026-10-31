@@ -57,6 +57,11 @@ public static class FeaturesManager
                     RoleClaimType = "role"
                 };
             });
+        builder.Services.AddAuthorization(options =>
+        {
+            // Secure new API controllers by default. Login/refresh explicitly use [AllowAnonymous].
+            options.FallbackPolicy = options.DefaultPolicy;
+        });
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IPasswordHasher<TblUser>, PasswordHasher<TblUser>>();
         builder.Services.AddScoped<IAuthService, AuthService>();

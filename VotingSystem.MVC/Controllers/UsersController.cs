@@ -1,10 +1,12 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VotingSystem.MVC.Models;
 
 namespace VotingSystem.MVC.Controllers;
 
+[Authorize(Roles = "SuperAdmin,Admin")]
 public class UsersController : Controller
 {
     private const string UserApiUrl = "api/User";

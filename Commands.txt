@@ -1,1 +1,3 @@
 dotnet ef dbcontext scaffold "Server=.;Database=VotingSystemDb;User Id=sa;Password=sasa@123;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -o AppDbContextModels -c AppDbContext --no-onconfiguring --force
+Sample data (run after Db_V2.sql and Db_V3.sql):
+sqlcmd -S . -d VotingSystemDb -U sa -P "sasa@123" -C -i Db_SampleData.sql

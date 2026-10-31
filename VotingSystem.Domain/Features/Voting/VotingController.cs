@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.IdentityModel.Tokens.Jwt;
 using VotingSystem.Domain.Features.Voting;
 using VotingSystem.Shared;
 
@@ -6,6 +8,7 @@ namespace VotingSystem.WebAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = "SuperAdmin,Admin,User")]
 public class VotingController : ControllerBase
 {
     private readonly IVotingService _votingService;
@@ -26,11 +29,15 @@ public class VotingController : ControllerBase
     public async Task<ActionResult<Result<VoteResponseModel>>> Vote(
         [FromBody] VoteRequestModel request)
     {
-        var response = await _votingService.VoteAsync(request);
+        var subject = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        if (!long.TryParse(subject, out var userId)) return Unauthorized();
+
+        var response = await _votingService.VoteAsync(request, userId);
         return response.ToActionResult();
     }
 
     [HttpPatch("limit")]
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public async Task<ActionResult<Result<VotingLimitResponseModel>>> UpdateVotingLimit(
         [FromBody] VotingLimitUpdateRequestModel request)
     {

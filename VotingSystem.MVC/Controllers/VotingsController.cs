@@ -1,10 +1,12 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VotingSystem.MVC.Models;
 
 namespace VotingSystem.MVC.Controllers;
 
+[Authorize(Roles = "SuperAdmin,Admin,User")]
 public class VotingsController : Controller
 {
     private const string VotingApiUrl = "api/Voting";
@@ -44,6 +46,7 @@ public class VotingsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public async Task<IActionResult> UpdateLimit(VotingLimitUpdateRequestModel model)
     {
         await SendOperation(HttpMethod.Patch, $"{VotingApiUrl}/limit", model, "Unable to update the voting limit.");

@@ -1,9 +1,11 @@
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VotingSystem.MVC.Models;
 
 namespace VotingSystem.MVC.Controllers;
 
+[Authorize(Roles = "SuperAdmin,Admin,User")]
 public class ResultsController : Controller
 {
     private const string ResultApiUrl = "api/Result";
@@ -32,16 +34,19 @@ public class ResultsController : Controller
         }
     }
 
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public IActionResult Create() => View(new ResultCreateRequestModel { Version = 1 });
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public async Task<IActionResult> Create(ResultCreateRequestModel model)
     {
         if (!ModelState.IsValid) return View(model);
         return await Save(model, HttpMethod.Post, "create", View(model));
     }
 
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public async Task<IActionResult> Edit(long id)
     {
         var result = await GetById(id);
@@ -57,6 +62,7 @@ public class ResultsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "SuperAdmin,Admin")]
     public async Task<IActionResult> Edit(long id, ResultUpdateRequestModel model)
     {
         if (id != model.Id) return BadRequest();

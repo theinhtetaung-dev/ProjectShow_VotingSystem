@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using VotingSystem.Domain.Features.ProjectType;
 using VotingSystem.Shared;
 
@@ -6,6 +7,7 @@ namespace VotingSystem.WebAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = "SuperAdmin,Admin")]
 public class ProjectTypeController : ControllerBase
 {
     private readonly IProjectTypeService _projectTypeService;

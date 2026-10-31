@@ -1,8 +1,12 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Dashboard";
 }
-
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="page-header">
+    <div><p class="eyebrow mb-1">Overview</p><h1 class="h2 mb-1">Dashboard</h1><p class="text-muted mb-0">Manage elections, participants, voting, and results from one place.</p></div>
+</div>
+<div class="row g-3 mt-1">
+    <div class="col-md-6 col-xl-3"><a asp-controller="Events" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-calendar" /></svg></span><span><strong>Events</strong><small>Manage election schedules</small></span></a></div>
+    <div class="col-md-6 col-xl-3"><a asp-controller="Users" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-users" /></svg></span><span><strong>Users</strong><small>Manage system participants</small></span></a></div>
+    <div class="col-md-6 col-xl-3"><a asp-controller="Votings" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-vote" /></svg></span><span><strong>Voting</strong><small>Review voting activity</small></span></a></div>
+    <div class="col-md-6 col-xl-3"><a asp-controller="Results" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-chart" /></svg></span><span><strong>Results</strong><small>View published outcomes</small></span></a></div>
 </div>

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using VotingSystem.Domain.Features.RolePermission;
 using VotingSystem.Shared;
 
@@ -6,6 +7,7 @@ namespace VotingSystem.WebAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = "SuperAdmin")]
 public class RolePermissionController : ControllerBase
 {
     private readonly IRolePermissionService _rolePermissionService;
