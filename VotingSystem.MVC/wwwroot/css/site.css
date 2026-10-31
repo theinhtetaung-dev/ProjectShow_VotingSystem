@@ -122,6 +122,9 @@ body {
 .date-range { display: inline-flex; flex-wrap: wrap; gap: .3rem; }
 .data-preview { max-width: 100%; overflow: hidden; }
 .data-preview pre { max-width: 100%; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .82rem; }
+.table-subtitle { display: block; max-width: 34rem; margin-top: .2rem; color: var(--muted); font-size: .8rem; }
+.code-label { display: inline-block; padding: .25rem .45rem; color: #344054; background: #eeede9; border: 1px solid var(--line); border-radius: .25rem; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .78rem; }
+.inline-operation { display: grid; grid-template-columns: minmax(140px, 220px) minmax(140px, 220px) auto; align-items: end; gap: .75rem; padding: 1rem; background: var(--surface); border: 1px solid var(--line); border-radius: .45rem; }
 
 .auth-shell { display: grid; place-items: center; min-height: calc(100vh - 3rem); padding: 1.5rem 0; }
 .auth-card { width: min(100%, 470px); padding: clamp(1.4rem, 4vw, 2.25rem); }
@@ -191,4 +194,6 @@ body {
   .mobile-card-table .table-actions .btn { flex: 1 1 0; min-width: 42px; }
   .date-range { display: flex; flex-direction: column; gap: .1rem; }
   .date-range [aria-hidden="true"] { display: none; }
+  .inline-operation { grid-template-columns: 1fr; }
+  .inline-operation .btn { width: 100%; }
 }
