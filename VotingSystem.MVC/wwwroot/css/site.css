@@ -18,5 +18,28 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+  margin: 0;
+  background-color: #f8f9fa;
+}
+
+.sidebar {
+  width: 260px;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link:focus {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+@media (min-width: 992px) {
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    visibility: visible !important;
+    transform: none !important;
+  }
+
+  .page-content {
+    margin-left: 260px;
+  }
 }
