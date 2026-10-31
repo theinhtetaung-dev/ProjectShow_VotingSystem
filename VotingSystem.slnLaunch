@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "MVC + API",
+    "Projects": [
+      {
+        "Path": "VotingSystem.MVC\\VotingSystem.MVC.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "VotingSystem.WebAPI\\VotingSystem.WebAPI.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      }
+    ]
+  }
+]

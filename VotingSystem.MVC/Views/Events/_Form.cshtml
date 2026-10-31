@@ -1,0 +1,61 @@
+@model EventRequestModel
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="row g-3">
+    <div class="col-md-8">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Code" class="form-label"></label>
+        <input asp-for="Code" class="form-control" />
+        <span asp-validation-for="Code" class="text-danger"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="StartDate" class="form-label"></label>
+        <input asp-for="StartDate" type="datetime-local" class="form-control" />
+        <span asp-validation-for="StartDate" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="EndDate" class="form-label"></label>
+        <input asp-for="EndDate" type="datetime-local" class="form-control" />
+        <span asp-validation-for="EndDate" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="VotingStartAt" class="form-label"></label>
+        <input asp-for="VotingStartAt" type="datetime-local" class="form-control" />
+        <span asp-validation-for="VotingStartAt" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="VotingEndAt" class="form-label"></label>
+        <input asp-for="VotingEndAt" type="datetime-local" class="form-control" />
+        <span asp-validation-for="VotingEndAt" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="ResultShowStartAt" class="form-label"></label>
+        <input asp-for="ResultShowStartAt" type="datetime-local" class="form-control" />
+        <span asp-validation-for="ResultShowStartAt" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="ResultShowEndAt" class="form-label"></label>
+        <input asp-for="ResultShowEndAt" type="datetime-local" class="form-control" />
+        <span asp-validation-for="ResultShowEndAt" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Status" class="form-label"></label>
+        <select asp-for="Status" class="form-select">
+            <option value="Upcoming">Upcoming</option>
+            <option value="Active">Active</option>
+            <option value="Ended">Ended</option>
+            <option value="Published">Published</option>
+        </select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+</div>

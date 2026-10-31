@@ -1,0 +1,24 @@
+@model EventResponseModel
+@{
+    ViewData["Title"] = "Event Details";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h2 mb-0">Event details</h1>
+    <span class="badge bg-secondary fs-6">@Model.Status</span>
+</div>
+
+<dl class="row border rounded p-3">
+    <dt class="col-sm-3">Name</dt><dd class="col-sm-9">@Model.Name</dd>
+    <dt class="col-sm-3">Code</dt><dd class="col-sm-9">@Model.Code</dd>
+    <dt class="col-sm-3">Description</dt><dd class="col-sm-9">@(Model.Description ?? "—")</dd>
+    <dt class="col-sm-3">Event starts</dt><dd class="col-sm-9">@Model.EventStartAt.ToString("f")</dd>
+    <dt class="col-sm-3">Event ends</dt><dd class="col-sm-9">@Model.EventEndAt.ToString("f")</dd>
+    <dt class="col-sm-3">Voting starts</dt><dd class="col-sm-9">@Model.VotingStartAt.ToString("f")</dd>
+    <dt class="col-sm-3">Voting ends</dt><dd class="col-sm-9">@Model.VotingEndAt.ToString("f")</dd>
+    <dt class="col-sm-3">Results shown from</dt><dd class="col-sm-9">@(Model.ResultShowStartAt?.ToString("f") ?? "—")</dd>
+    <dt class="col-sm-3">Results shown until</dt><dd class="col-sm-9">@(Model.ResultShowEndAt?.ToString("f") ?? "—")</dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+<a asp-action="Index" class="btn btn-outline-secondary">Back to list</a>
