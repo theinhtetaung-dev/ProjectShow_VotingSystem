@@ -1,12 +1,28 @@
-﻿@{
+@{
     ViewData["Title"] = "Dashboard";
+    var canManage = User.IsInRole("SuperAdmin") || User.IsInRole("Admin");
 }
-<div class="page-header">
-    <div><p class="eyebrow mb-1">Overview</p><h1 class="h2 mb-1">Dashboard</h1><p class="text-muted mb-0">Manage elections, participants, voting, and results from one place.</p></div>
+<div class="welcome-panel">
+    <div><p class="eyebrow mb-2">Voting workspace</p><h1>Welcome back, @User.Identity?.Name</h1><p class="mb-0">@(canManage ? "Set up events, manage participants, and monitor the complete election lifecycle." : "Cast your vote securely and follow published election results.")</p></div>
+    <span class="role-pill"><svg class="app-icon"><use href="#icon-shield" /></svg>@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span>
 </div>
-<div class="row g-3 mt-1">
-    <div class="col-md-6 col-xl-3"><a asp-controller="Events" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-calendar" /></svg></span><span><strong>Events</strong><small>Manage election schedules</small></span></a></div>
-    <div class="col-md-6 col-xl-3"><a asp-controller="Users" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-users" /></svg></span><span><strong>Users</strong><small>Manage system participants</small></span></a></div>
-    <div class="col-md-6 col-xl-3"><a asp-controller="Votings" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-vote" /></svg></span><span><strong>Voting</strong><small>Review voting activity</small></span></a></div>
-    <div class="col-md-6 col-xl-3"><a asp-controller="Results" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-chart" /></svg></span><span><strong>Results</strong><small>View published outcomes</small></span></a></div>
-</div>
+<section class="mt-4" aria-labelledby="quick-actions">
+    <div class="section-heading"><p class="eyebrow mb-1">Quick actions</p><h2 id="quick-actions" class="h4 mb-0">What would you like to do?</h2></div>
+    <div class="row g-3 mt-1">
+        @if (canManage)
+        {
+            <div class="col-md-6 col-xl-3"><a asp-controller="Events" asp-action="Create" class="module-card module-card-primary"><span class="module-icon"><svg class="app-icon"><use href="#icon-calendar" /></svg></span><span><strong>Create an event</strong><small>Define dates and voting windows</small></span><svg class="app-icon module-arrow"><use href="#icon-chevron" /></svg></a></div>
+            <div class="col-md-6 col-xl-3"><a asp-controller="Projects" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-project" /></svg></span><span><strong>Manage projects</strong><small>Set up ballot choices</small></span><svg class="app-icon module-arrow"><use href="#icon-chevron" /></svg></a></div>
+            <div class="col-md-6 col-xl-3"><a asp-controller="Users" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-users" /></svg></span><span><strong>Manage voters</strong><small>Review participant access</small></span><svg class="app-icon module-arrow"><use href="#icon-chevron" /></svg></a></div>
+        }
+        <div class="col-md-6 col-xl-3"><a asp-controller="Votings" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-vote" /></svg></span><span><strong>@(canManage ? "Voting activity" : "Cast your vote")</strong><small>@(canManage ? "Monitor submitted ballots" : "Open the secure ballot")</small></span><svg class="app-icon module-arrow"><use href="#icon-chevron" /></svg></a></div>
+        <div class="col-md-6 col-xl-3"><a asp-controller="Results" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-chart" /></svg></span><span><strong>View results</strong><small>See published outcomes</small></span><svg class="app-icon module-arrow"><use href="#icon-chevron" /></svg></a></div>
+    </div>
+</section>
+@if (canManage)
+{
+    <section class="workflow-card mt-4" aria-labelledby="workflow-title">
+        <div><p class="eyebrow mb-1">Election workflow</p><h2 id="workflow-title" class="h4">Run a complete election</h2><p class="text-muted mb-0">Follow this order to keep configuration and participant access consistent.</p></div>
+        <ol class="workflow-steps"><li><span>1</span><div><strong>Create event</strong><small>Set the full timeline</small></div></li><li><span>2</span><div><strong>Add projects</strong><small>Build the ballot</small></div></li><li><span>3</span><div><strong>Assign voters</strong><small>Control participation</small></div></li><li><span>4</span><div><strong>Publish results</strong><small>Share the outcome</small></div></li></ol>
+    </section>
+}

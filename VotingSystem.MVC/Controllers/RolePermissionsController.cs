@@ -18,20 +18,20 @@ public class RolePermissionsController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10)
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<ApiResult<List<RolePermissionResponseModel>>>(RolePermissionApiUrl);
+            var result = await _httpClient.GetFromJsonAsync<ApiResult<PageResult<RolePermissionResponseModel>>>($"{RolePermissionApiUrl}?pageNumber={pageNumber}&pageSize={pageSize}");
             if (result?.IsSuccess != true)
                 TempData["ErrorMessage"] = result?.Message ?? "Unable to load role permissions.";
-            return View(result?.Data ?? []);
+            return View(result?.Data ?? new PageResult<RolePermissionResponseModel>());
         }
         catch (Exception ex) when (IsApiException(ex))
         {
             LogApiError(ex);
             TempData["ErrorMessage"] = "Unable to connect to the Role Permission API. Please try again.";
-            return View(new List<RolePermissionResponseModel>());
+            return View(new PageResult<RolePermissionResponseModel>());
         }
     }
 

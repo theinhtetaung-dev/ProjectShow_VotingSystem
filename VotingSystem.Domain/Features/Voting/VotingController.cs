@@ -19,10 +19,10 @@ public class VotingController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<Result<List<VotingResponseModel>>>> GetVotings()
+    public async Task<ActionResult<Result<PageResult<VotingResponseModel>>>> GetVotings(int pageNumber = 1, int pageSize = 10)
     {
         var response = await _votingService.GetVotinglist();
-        return response.ToActionResult();
+        return response.ToPageResult(pageNumber, pageSize).ToActionResult();
     }
 
     [HttpPost("vote")]

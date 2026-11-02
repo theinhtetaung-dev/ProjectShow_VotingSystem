@@ -18,10 +18,10 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<Result<List<ProjectResponseModel>>>> GetProjects()
+    public async Task<ActionResult<Result<PageResult<ProjectResponseModel>>>> GetProjects(int pageNumber = 1, int pageSize = 10)
     {
         var response = await _projectService.GetProjectlist();
-        return response.ToActionResult();
+        return response.ToPageResult(pageNumber, pageSize).ToActionResult();
     }
 
     [HttpGet("{id:long}")]

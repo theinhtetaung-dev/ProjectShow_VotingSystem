@@ -18,24 +18,24 @@ public class PermissionsController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10)
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<ApiResult<List<PermissionResponseModel>>>(PermissionApiUrl);
+            var result = await _httpClient.GetFromJsonAsync<ApiResult<PageResult<PermissionResponseModel>>>($"{PermissionApiUrl}?pageNumber={pageNumber}&pageSize={pageSize}");
             if (result?.IsSuccess != true)
             {
                 TempData["ErrorMessage"] = result?.Message ?? "Unable to load permissions.";
-                return View(new List<PermissionResponseModel>());
+                return View(new PageResult<PermissionResponseModel>());
             }
 
-            return View(result.Data ?? new List<PermissionResponseModel>());
+            return View(result.Data ?? new PageResult<PermissionResponseModel>());
         }
         catch (Exception ex) when (IsApiException(ex))
         {
             LogApiError(ex);
             TempData["ErrorMessage"] = "Unable to connect to the Permission API. Please try again.";
-            return View(new List<PermissionResponseModel>());
+            return View(new PageResult<PermissionResponseModel>());
         }
     }
 

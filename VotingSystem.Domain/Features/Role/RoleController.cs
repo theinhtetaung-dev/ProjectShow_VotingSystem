@@ -18,10 +18,10 @@ public class RoleController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<Result<List<RoleResponseModel>>>> GetRoles()
+    public async Task<ActionResult<Result<PageResult<RoleResponseModel>>>> GetRoles(int pageNumber = 1, int pageSize = 10)
     {
         var response = await _roleService.GetRolelist();
-        return response.ToActionResult();
+        return response.ToPageResult(pageNumber, pageSize).ToActionResult();
     }
 
     [HttpGet("{id:int}")]

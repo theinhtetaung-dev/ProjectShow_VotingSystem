@@ -18,19 +18,19 @@ public class ResultsController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10)
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<ApiResult<List<ResultResponseModel>>>(ResultApiUrl);
+            var result = await _httpClient.GetFromJsonAsync<ApiResult<PageResult<ResultResponseModel>>>($"{ResultApiUrl}?pageNumber={pageNumber}&pageSize={pageSize}");
             if (result?.IsSuccess != true) TempData["ErrorMessage"] = result?.Message ?? "Unable to load results.";
-            return View(result?.Data ?? []);
+            return View(result?.Data ?? new PageResult<ResultResponseModel>());
         }
         catch (Exception ex) when (IsApiException(ex))
         {
             LogApiError(ex);
             TempData["ErrorMessage"] = "Unable to connect to the Result API. Please try again.";
-            return View(new List<ResultResponseModel>());
+            return View(new PageResult<ResultResponseModel>());
         }
     }
 

@@ -18,10 +18,10 @@ public class RolePermissionController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<Result<List<RolePermissionResponseModel>>>> GetRolePermissions()
+    public async Task<ActionResult<Result<PageResult<RolePermissionResponseModel>>>> GetRolePermissions(int pageNumber = 1, int pageSize = 10)
     {
         var response = await _rolePermissionService.GetRolePermissionlist();
-        return response.ToActionResult();
+        return response.ToPageResult(pageNumber, pageSize).ToActionResult();
     }
 
     [HttpGet("{id:long}")]

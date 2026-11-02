@@ -33,6 +33,7 @@
         <symbol id="icon-edit" viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l1.2-5.2L16.5 3.5a1.4 1.4 0 0 1 2 0l2 2a1.4 1.4 0 0 1 0 2L9.2 18.8 4 20Z"/></symbol>
         <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/></symbol>
         <symbol id="icon-login" viewBox="0 0 24 24"><path d="M10 4H5v16h5M13 8l4 4-4 4M8 12h9"/></symbol>
+        <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
     </svg>
     @if (isAuthenticated)
     {
@@ -53,6 +54,7 @@
                 <a class="nav-link sidebar-link @(currentController == "Home" ? "active" : null)" asp-controller="Home" asp-action="Index"><svg class="app-icon"><use href="#icon-dashboard" /></svg><span>Dashboard</span></a>
                 @if (isSuperAdmin || isAdmin)
                 {
+                <span class="nav-section-label">Election management</span>
                 <a class="nav-link sidebar-link @(currentController == "Events" ? "active" : null)" asp-controller="Events" asp-action="Index"><svg class="app-icon"><use href="#icon-calendar" /></svg><span>Events</span></a>
                 <a class="nav-link sidebar-link @(currentController == "Projects" ? "active" : null)" asp-controller="Projects" asp-action="Index"><svg class="app-icon"><use href="#icon-project" /></svg><span>Projects</span></a>
                 <a class="nav-link sidebar-link @(currentController == "ProjectTypes" ? "active" : null)" asp-controller="ProjectTypes" asp-action="Index"><svg class="app-icon"><use href="#icon-layers" /></svg><span>Project Types</span></a>
@@ -60,10 +62,12 @@
                 }
                 @if (isSuperAdmin)
                 {
+                <span class="nav-section-label">Access control</span>
                 <a class="nav-link sidebar-link @(currentController == "Roles" ? "active" : null)" asp-controller="Roles" asp-action="Index"><svg class="app-icon"><use href="#icon-shield" /></svg><span>Roles</span></a>
                 <a class="nav-link sidebar-link @(currentController == "Permissions" ? "active" : null)" asp-controller="Permissions" asp-action="Index"><svg class="app-icon"><use href="#icon-key" /></svg><span>Permissions</span></a>
                 <a class="nav-link sidebar-link @(currentController == "RolePermissions" ? "active" : null)" asp-controller="RolePermissions" asp-action="Index"><svg class="app-icon"><use href="#icon-shield" /></svg><span>Role Permissions</span></a>
                 }
+                <span class="nav-section-label">Participation</span>
                 <a class="nav-link sidebar-link @(currentController == "Votings" ? "active" : null)" asp-controller="Votings" asp-action="Index"><svg class="app-icon"><use href="#icon-vote" /></svg><span>Voting</span></a>
                 <a class="nav-link sidebar-link @(currentController == "Results" ? "active" : null)" asp-controller="Results" asp-action="Index"><svg class="app-icon"><use href="#icon-chart" /></svg><span>Results</span></a>
             </nav>
@@ -78,6 +82,13 @@
     }
 
     <div class="page-content @(isAuthenticated ? null : "page-content-public")">
+        @if (isAuthenticated)
+        {
+        <div class="desktop-topbar d-none d-lg-flex">
+            <div class="breadcrumb-line" aria-label="Breadcrumb"><a asp-controller="Home" asp-action="Index">Home</a>@if (currentController != "Home") { <svg class="app-icon"><use href="#icon-chevron" /></svg><span>@ViewData["Title"]</span> }</div>
+            <div class="topbar-account"><span class="account-avatar">@(User.Identity?.Name?.Substring(0, 1).ToUpperInvariant() ?? "U")</span><span><strong>@User.Identity?.Name</strong><small>@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</small></span></div>
+        </div>
+        }
         <main class="container-fluid p-3 p-md-4" role="main">
             @RenderBody()
         </main>

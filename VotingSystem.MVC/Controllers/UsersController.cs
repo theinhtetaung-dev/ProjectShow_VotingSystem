@@ -19,19 +19,19 @@ public class UsersController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10)
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<ApiResult<List<UserResponseModel>>>(UserApiUrl);
+            var result = await _httpClient.GetFromJsonAsync<ApiResult<PageResult<UserResponseModel>>>($"{UserApiUrl}?pageNumber={pageNumber}&pageSize={pageSize}");
             if (result?.IsSuccess != true) TempData["ErrorMessage"] = result?.Message ?? "Unable to load users.";
-            return View(result?.Data ?? []);
+            return View(result?.Data ?? new PageResult<UserResponseModel>());
         }
         catch (Exception ex) when (IsApiException(ex))
         {
             LogApiError(ex);
             TempData["ErrorMessage"] = "Unable to connect to the User API. Please try again.";
-            return View(new List<UserResponseModel>());
+            return View(new PageResult<UserResponseModel>());
         }
     }
 

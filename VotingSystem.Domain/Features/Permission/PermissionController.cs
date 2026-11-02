@@ -18,10 +18,10 @@ public class PermissionController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<Result<List<PermissionResponseModel>>>> GetPermissions()
+    public async Task<ActionResult<Result<PageResult<PermissionResponseModel>>>> GetPermissions(int pageNumber = 1, int pageSize = 10)
     {
         var response = await _permissionService.GetPermissionlist();
-        return response.ToActionResult();
+        return response.ToPageResult(pageNumber, pageSize).ToActionResult();
     }
 
     [HttpGet("{id:int}")]

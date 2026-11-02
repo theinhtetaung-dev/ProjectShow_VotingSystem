@@ -18,10 +18,10 @@ public class ResultController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<Result<List<ResultResponseModel>>>> GetResults()
+    public async Task<ActionResult<Result<PageResult<ResultResponseModel>>>> GetResults(int pageNumber = 1, int pageSize = 10)
     {
         var response = await _resultService.GetResultlist();
-        return response.ToActionResult();
+        return response.ToPageResult(pageNumber, pageSize).ToActionResult();
     }
 
     [HttpGet("{id:long}")]

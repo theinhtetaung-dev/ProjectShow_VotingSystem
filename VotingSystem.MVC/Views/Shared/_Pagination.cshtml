@@ -1,0 +1,12 @@
+@model dynamic
+@if (Model.TotalPages > 1)
+{
+    <nav class="pagination-shell" aria-label="Page navigation">
+        <span class="pagination-summary">Page @Model.PageNumber of @Model.TotalPages · @Model.TotalCount records</span>
+        <div class="pagination-actions">
+            <a class="btn btn-sm btn-outline-secondary @(Model.HasPreviousPage ? null : "disabled")" asp-route-pageNumber="@(Model.PageNumber - 1)" asp-route-pageSize="@Model.PageSize" aria-disabled="@(!Model.HasPreviousPage)">Previous</a>
+            <span class="page-number">@Model.PageNumber</span>
+            <a class="btn btn-sm btn-outline-secondary @(Model.HasNextPage ? null : "disabled")" asp-route-pageNumber="@(Model.PageNumber + 1)" asp-route-pageSize="@Model.PageSize" aria-disabled="@(!Model.HasNextPage)">Next</a>
+        </div>
+    </nav>
+}

@@ -18,24 +18,24 @@ public class ProjectTypesController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10)
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<ApiResult<List<ProjectTypeResponseModel>>>(ProjectTypeApiUrl);
+            var result = await _httpClient.GetFromJsonAsync<ApiResult<PageResult<ProjectTypeResponseModel>>>($"{ProjectTypeApiUrl}?pageNumber={pageNumber}&pageSize={pageSize}");
             if (result?.IsSuccess != true)
             {
                 TempData["ErrorMessage"] = result?.Message ?? "Unable to load projecttypes.";
-                return View(new List<ProjectTypeResponseModel>());
+                return View(new PageResult<ProjectTypeResponseModel>());
             }
 
-            return View(result.Data ?? new List<ProjectTypeResponseModel>());
+            return View(result.Data ?? new PageResult<ProjectTypeResponseModel>());
         }
         catch (Exception ex) when (IsApiException(ex))
         {
             LogApiError(ex);
             TempData["ErrorMessage"] = "Unable to connect to the ProjectType API. Please try again.";
-            return View(new List<ProjectTypeResponseModel>());
+            return View(new PageResult<ProjectTypeResponseModel>());
         }
     }
 

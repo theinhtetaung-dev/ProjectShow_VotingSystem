@@ -18,24 +18,24 @@ public class RolesController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10)
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<ApiResult<List<RoleResponseModel>>>(RoleApiUrl);
+            var result = await _httpClient.GetFromJsonAsync<ApiResult<PageResult<RoleResponseModel>>>($"{RoleApiUrl}?pageNumber={pageNumber}&pageSize={pageSize}");
             if (result?.IsSuccess != true)
             {
                 TempData["ErrorMessage"] = result?.Message ?? "Unable to load roles.";
-                return View(new List<RoleResponseModel>());
+                return View(new PageResult<RoleResponseModel>());
             }
 
-            return View(result.Data ?? new List<RoleResponseModel>());
+            return View(result.Data ?? new PageResult<RoleResponseModel>());
         }
         catch (Exception ex) when (IsApiException(ex))
         {
             LogApiError(ex);
             TempData["ErrorMessage"] = "Unable to connect to the Role API. Please try again.";
-            return View(new List<RoleResponseModel>());
+            return View(new PageResult<RoleResponseModel>());
         }
     }
 

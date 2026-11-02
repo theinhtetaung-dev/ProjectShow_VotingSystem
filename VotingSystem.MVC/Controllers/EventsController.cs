@@ -19,25 +19,25 @@ public class EventsController : Controller
     }
 
     [ActionName("Index")]
-    public async Task<IActionResult> EventIndex()
+    public async Task<IActionResult> EventIndex(int pageNumber = 1, int pageSize = 10)
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<ApiResult<List<EventResponseModel>>>(EventApiUrl);
+            var result = await _httpClient.GetFromJsonAsync<ApiResult<PageResult<EventResponseModel>>>($"{EventApiUrl}?pageNumber={pageNumber}&pageSize={pageSize}");
 
             if (result is null || !result.IsSuccess)
             {
                 TempData["ErrorMessage"] = result?.Message ?? "Unable to load events.";
-                return View("EventIndex", new List<EventResponseModel>());
+                return View("EventIndex", new PageResult<EventResponseModel>());
             }
 
-            return View("EventIndex", result.Data ?? new List<EventResponseModel>());
+            return View("EventIndex", result.Data ?? new PageResult<EventResponseModel>());
         }
         catch (Exception ex) when (IsApiException(ex))
         {
             LogApiError(ex);
             TempData["ErrorMessage"] = "Unable to connect to the Event API. Please try again.";
-            return View("EventIndex", new List<EventResponseModel>());
+            return View("EventIndex", new PageResult<EventResponseModel>());
         }
     }
 

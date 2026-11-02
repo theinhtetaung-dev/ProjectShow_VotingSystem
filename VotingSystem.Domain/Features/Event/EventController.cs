@@ -19,10 +19,10 @@ namespace VotingSystem.WebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<Result<List<EventResponseModel>>>> GetEvents()
+        public async Task<ActionResult<Result<PageResult<EventResponseModel>>>> GetEvents(int pageNumber = 1, int pageSize = 10)
         {
             var response = await _eventService.GetEventlist();
-            return response.ToActionResult();
+            return response.ToPageResult(pageNumber, pageSize).ToActionResult();
         }
 
         [HttpGet("{id:long}")]

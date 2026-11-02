@@ -18,10 +18,10 @@ public class UserController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<Result<List<UserResponseModel>>>> GetUsers()
+    public async Task<ActionResult<Result<PageResult<UserResponseModel>>>> GetUsers(int pageNumber = 1, int pageSize = 10)
     {
         var response = await _userService.GetUserlist();
-        return response.ToActionResult();
+        return response.ToPageResult(pageNumber, pageSize).ToActionResult();
     }
 
     [HttpGet("{id:long}")]

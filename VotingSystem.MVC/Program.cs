@@ -32,18 +32,31 @@ builder.Services.AddAuthorization(options =>
     // New MVC actions are protected unless they explicitly use [AllowAnonymous].
     options.FallbackPolicy = options.DefaultPolicy;
 });
-builder.Services.AddHttpClient("VotingSystemApi", client =>
+var apiClient = builder.Services.AddHttpClient("VotingSystemApi", client =>
 {
     client.BaseAddress = new Uri(
         builder.Configuration["ApiSettings:BaseUrl"]
         ?? throw new InvalidOperationException("ApiSettings:BaseUrl is not configured."));
 }).AddHttpMessageHandler<ApiAuthorizationHandler>();
-builder.Services.AddHttpClient("VotingSystemAuthApi", client =>
+var authApiClient = builder.Services.AddHttpClient("VotingSystemAuthApi", client =>
 {
     client.BaseAddress = new Uri(
         builder.Configuration["ApiSettings:BaseUrl"]
         ?? throw new InvalidOperationException("ApiSettings:BaseUrl is not configured."));
 });
+
+if (builder.Environment.IsDevelopment())
+{
+    // The local API uses the ASP.NET Core development certificate.
+    apiClient.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    });
+    authApiClient.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    });
+}
 
 var app = builder.Build();
 

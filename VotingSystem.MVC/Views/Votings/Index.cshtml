@@ -1,6 +1,16 @@
-@model List<VotingResponseModel>
+@model PageResult<VotingResponseModel>
 @{ ViewData["Title"] = "Voting"; }
-<div class="page-header mb-3"><div><p class="eyebrow mb-1">Election activity</p><h1 class="h2 mb-0">Voting</h1></div></div>
+<div class="page-header mb-4"><div><p class="eyebrow mb-1">Secure ballot</p><h1 class="h2 mb-1">Voting</h1><p class="text-muted mb-0">Submit a ballot choice using your assigned participation record.</p></div></div>
 <partial name="_PageAlerts" />
-<form asp-action="Vote" method="post" class="inline-operation mb-4"><div><label class="form-label">User Event ID</label><input name="UserEventId" type="number" min="1" class="form-control" required /></div><div><label class="form-label">Project ID</label><input name="ProjectId" type="number" min="1" class="form-control" required /></div><button type="submit" class="btn btn-primary">Cast vote</button></form>
-@if (Model.Count == 0) { <div class="alert alert-info">No voting records found.</div> } else { <div class="table-responsive mobile-table-shell"><table class="table table-hover align-middle mobile-card-table"><thead><tr><th>Vote ID</th><th>User Event ID</th><th>Project ID</th><th>Voted at</th></tr></thead><tbody>@foreach (var item in Model) { <tr><td data-label="Vote ID">@item.Id</td><td data-label="User Event ID">@item.UserEventId</td><td data-label="Project ID">@item.ProjectId</td><td data-label="Voted at">@item.VotedAt.ToString("g")</td></tr> }</tbody></table></div> }
+<div class="operation-card mb-4">
+    <div class="operation-intro"><span class="module-icon"><svg class="app-icon"><use href="#icon-vote" /></svg></span><div><h2 class="h5 mb-1">Cast a vote</h2><p class="text-muted mb-0">Enter the IDs supplied in your election invitation. Check both values before confirming.</p></div></div>
+    <form asp-action="Vote" method="post" class="inline-operation border-0 p-0 mt-3">
+        <div><label class="form-label" for="userEventId">Participation ID</label><input id="userEventId" name="UserEventId" type="number" min="1" class="form-control" inputmode="numeric" placeholder="e.g. 1024" required /><div class="form-hint">Shown in your event invitation</div></div>
+        <div><label class="form-label" for="projectId">Project ID</label><input id="projectId" name="ProjectId" type="number" min="1" class="form-control" inputmode="numeric" placeholder="e.g. 18" required /><div class="form-hint">Shown beside the ballot choice</div></div>
+        <button type="submit" class="btn btn-primary">Confirm vote</button>
+    </form>
+</div>
+<div class="section-heading"><p class="eyebrow mb-1">Activity</p><h2 class="h4 mb-0">Voting records</h2></div>
+@if (Model.Count == 0) { <div class="alert alert-info">No voting records found.</div> }
+else { <div class="table-responsive mobile-table-shell"><table class="table table-hover align-middle mobile-card-table"><thead><tr><th>Vote ID</th><th>Participation ID</th><th>Project ID</th><th>Submitted</th></tr></thead><tbody>@foreach (var item in Model) { <tr><td data-label="Vote ID">@item.Id</td><td data-label="Participation ID">@item.UserEventId</td><td data-label="Project ID">@item.ProjectId</td><td data-label="Submitted">@item.VotedAt.ToString("g")</td></tr> }</tbody></table></div> }
+<partial name="_Pagination" model="Model" />

@@ -19,20 +19,20 @@ public class VotingsController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10)
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<ApiResult<List<VotingResponseModel>>>(VotingApiUrl);
+            var result = await _httpClient.GetFromJsonAsync<ApiResult<PageResult<VotingResponseModel>>>($"{VotingApiUrl}?pageNumber={pageNumber}&pageSize={pageSize}");
             if (result?.IsSuccess != true)
                 TempData["ErrorMessage"] = result?.Message ?? "Unable to load voting records.";
-            return View(result?.Data ?? []);
+            return View(result?.Data ?? new PageResult<VotingResponseModel>());
         }
         catch (Exception ex) when (IsApiException(ex))
         {
             LogApiError(ex);
             TempData["ErrorMessage"] = "Unable to connect to the Voting API. Please try again.";
-            return View(new List<VotingResponseModel>());
+            return View(new PageResult<VotingResponseModel>());
         }
     }
 
