@@ -18,14 +18,9 @@ public class AuditLogService : IAuditLogService
     {
         try
         {
-            var auditLogs = await _dbContext.TblAuditLogs
+            var resModel = await _dbContext.TblAuditLogs
                 .OrderByDescending(x => x.Id)
-                .ToListAsync();
-            var resModel = new List<AuditLogResponseModel>();
-
-            foreach (var auditLog in auditLogs)
-            {
-                resModel.Add(new AuditLogResponseModel
+                .Select(auditLog => new AuditLogResponseModel
                 {
                     Id = auditLog.Id,
                     Action = auditLog.Action,
@@ -36,10 +31,10 @@ public class AuditLogService : IAuditLogService
                     OldValue = auditLog.OldValue,
                     NewValue = auditLog.NewValue,
                     Description = auditLog.Description
-                });
-            }
+                })
+                .ToListAsync();
 
-            string message = auditLogs.Count == 0 ? "No audit logs found." : "Success";
+            string message = resModel.Count == 0 ? "No audit logs found." : "Success";
             return Result<List<AuditLogResponseModel>>.Success(resModel, message);
         }
         catch (Exception ex)

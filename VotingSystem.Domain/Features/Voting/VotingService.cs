@@ -19,23 +19,18 @@ public class VotingService : IVotingService
     {
         try
         {
-            var votes = await _dbContext.TblVotes
+            var resModel = await _dbContext.TblVotes
                 .OrderBy(x => x.Id)
-                .ToListAsync();
-            var resModel = new List<VotingResponseModel>();
-
-            foreach (var vote in votes)
-            {
-                resModel.Add(new VotingResponseModel
+                .Select(vote => new VotingResponseModel
                 {
                     Id = vote.Id,
                     UserEventId = vote.UserEventId,
                     ProjectId = vote.ProjectId,
                     VotedAt = vote.VotedAt
-                });
-            }
+                })
+                .ToListAsync();
 
-            string message = votes.Count == 0 ? "No votes found." : "Success";
+            string message = resModel.Count == 0 ? "No votes found." : "Success";
             return Result<List<VotingResponseModel>>.Success(resModel, message);
         }
         catch (Exception ex)
