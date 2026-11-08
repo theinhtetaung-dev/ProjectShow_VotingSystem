@@ -1,6 +1,6 @@
 namespace VotingSystem.MVC.Models;
 
-public sealed class PageResult<T> : IReadOnlyList<T>
+public sealed class PageResult<T>
 {
     public List<T> Items { get; set; } = [];
     public int PageNumber { get; set; } = 1;
@@ -12,5 +12,4 @@ public sealed class PageResult<T> : IReadOnlyList<T>
     public int Count => Items.Count;
     public T this[int index] => Items[index];
     public IEnumerator<T> GetEnumerator() => Items.GetEnumerator();
-    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 }

@@ -18,11 +18,21 @@ public class ProjectsController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10)
+    public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, string? status = null)
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<ApiResult<PageResult<ProjectResponseModel>>>($"{ProjectApiUrl}?pageNumber={pageNumber}&pageSize={pageSize}");
+            var query = $"{ProjectApiUrl}?pageNumber={pageNumber}&pageSize={pageSize}";
+            if (!string.IsNullOrWhiteSpace(status))
+                query += $"&status={Uri.EscapeDataString(status)}";
+
+            var statusesTask = _httpClient.GetFromJsonAsync<List<string>>($"{ProjectApiUrl}/statuses");
+            var resultTask = _httpClient.GetFromJsonAsync<ApiResult<PageResult<ProjectResponseModel>>>(query);
+            await Task.WhenAll(statusesTask, resultTask);
+
+            ViewBag.Statuses = statusesTask.Result ?? [];
+            ViewBag.SelectedStatus = status;
+            var result = resultTask.Result;
             if (result?.IsSuccess != true)
             {
                 TempData["ErrorMessage"] = result?.Message ?? "Unable to load projects.";
@@ -34,6 +44,8 @@ public class ProjectsController : Controller
         catch (Exception ex) when (IsApiException(ex))
         {
             LogApiError(ex);
+            ViewBag.Statuses = new List<string>();
+            ViewBag.SelectedStatus = status;
             TempData["ErrorMessage"] = "Unable to connect to the Project API. Please try again.";
             return View(new PageResult<ProjectResponseModel>());
         }

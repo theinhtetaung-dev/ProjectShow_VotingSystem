@@ -1,6 +1,70 @@
 @model PageResult<ProjectResponseModel>
-@{ ViewData["Title"] = "Projects"; }
-<div class="page-toolbar mb-3"><div><p class="eyebrow mb-1">Management</p><h1 class="h2 mb-0">Projects</h1></div><a asp-action="Create" class="btn btn-primary"><svg class="app-icon"><use href="#icon-plus" /></svg>Create project</a></div>
+@{
+    ViewData["Title"] = "Projects";
+    var statuses = ViewBag.Statuses as IEnumerable<string> ?? [];
+    var selectedStatus = ViewBag.SelectedStatus as string;
+}
+
+<div class="page-toolbar mb-3">
+    <div>
+        <p class="eyebrow mb-1">Management</p>
+        <h1 class="h2 mb-0">Projects</h1>
+    </div>
+    <a asp-action="Create" class="btn btn-primary"><svg class="app-icon"><use href="#icon-plus" /></svg>Create project</a>
+</div>
+
 <partial name="_PageAlerts" />
-@if (Model.Items.Count == 0) { <div class="alert alert-info">No projects found.</div> }
-else { <div class="table-responsive mobile-table-shell"><table class="table table-hover align-middle mobile-card-table"><thead><tr><th>Project</th><th>Event ID</th><th>Type ID</th><th>Votes</th><th class="text-end">Actions</th></tr></thead><tbody>@foreach (var item in Model.Items) { <tr><td data-label="Project"><strong>@item.Name</strong><small class="table-subtitle">@(item.Description ?? "No description")</small></td><td data-label="Event ID">@item.EventId</td><td data-label="Type ID">@item.ProjectTypeId</td><td data-label="Votes">@item.VoteCounts</td><td data-label="Actions" class="table-actions text-end"><a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a><a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a></td></tr> }</tbody></table></div><partial name="_Pagination" model="Model" /> }
+
+<form asp-action="Index" method="get" class="row g-2 align-items-end mb-3">
+    <div class="col-12 col-sm-6 col-lg-4">
+        <label for="status" class="form-label">Status</label>
+        <select id="status" name="status" class="form-select" onchange="this.form.submit()">
+            <option value="">All Statuses</option>
+            @foreach (var status in statuses)
+            {
+                <option value="@status" selected="@(status == selectedStatus)">@status</option>
+            }
+        </select>
+    </div>
+    <input type="hidden" name="pageSize" value="@Model.PageSize" />
+    <noscript><div class="col-auto"><button type="submit" class="btn btn-outline-primary">Apply</button></div></noscript>
+</form>
+
+@if (Model.Items.Count == 0)
+{
+    <div class="alert alert-info">No projects found.</div>
+}
+else
+{
+    <div class="table-responsive mobile-table-shell">
+        <table class="table table-hover align-middle mobile-card-table">
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>Event Code</th>
+                    <th>Project Type</th>
+                    <th>Status</th>
+                    <th>Votes</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td data-label="Project"><strong>@item.Name</strong><small class="table-subtitle">@(item.Description ?? "No description")</small></td>
+                        <td data-label="Event Code">@(string.IsNullOrWhiteSpace(item.EventCode) ? "—" : item.EventCode)</td>
+                        <td data-label="Project Type">@(string.IsNullOrWhiteSpace(item.ProjectTypeName) ? "—" : item.ProjectTypeName)</td>
+                        <td data-label="Status"><span class="badge bg-secondary">@(string.IsNullOrWhiteSpace(item.Status) ? "Unknown" : item.Status)</span></td>
+                        <td data-label="Votes">@item.VoteCounts</td>
+                        <td data-label="Actions" class="table-actions text-end">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pagination" model="Model" />
+}

@@ -7,6 +7,6 @@ public interface IProjectService
     Task<Result<ProjectResponseModel>> CreateProjectAsync(ProjectCreateRequestModel request);
     Task<Result<ProjectResponseModel>> DeleteProject(long id);
     Task<Result<ProjectResponseModel>> GetProjectByID(long id);
-    Task<Result<List<ProjectResponseModel>>> GetProjectlist();
+    Task<Result<PageResult<ProjectResponseModel>>> GetProjectlist(int pageNumber, int pageSize, string? status);
     Task<Result<ProjectResponseModel>> UpdateProject(ProjectUpdateRequestModel request);
 }

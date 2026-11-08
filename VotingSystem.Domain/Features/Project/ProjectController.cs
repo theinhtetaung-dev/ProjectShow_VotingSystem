@@ -18,10 +18,19 @@ public class ProjectController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<Result<PageResult<ProjectResponseModel>>>> GetProjects(int pageNumber = 1, int pageSize = 10)
+    public async Task<ActionResult<Result<PageResult<ProjectResponseModel>>>> GetProjects(
+        int pageNumber = 1,
+        int pageSize = 10,
+        string? status = null)
     {
-        var response = await _projectService.GetProjectlist();
-        return response.ToPageResult(pageNumber, pageSize).ToActionResult();
+        var response = await _projectService.GetProjectlist(pageNumber, pageSize, status);
+        return response.ToActionResult();
+    }
+
+    [HttpGet("statuses")]
+    public ActionResult<IReadOnlyList<string>> GetProjectStatuses()
+    {
+        return Ok(Enum.GetNames<Enums.EventStatus>());
     }
 
     [HttpGet("{id:long}")]

@@ -38,6 +38,9 @@ public class ProjectResponseModel
     public long Id { get; set; }
     public long EventId { get; set; }
     public int ProjectTypeId { get; set; }
+    public string EventCode { get; set; } = null!;
+    public string ProjectTypeName { get; set; } = null!;
+    public string Status { get; set; } = null!;
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
     public int VoteCounts { get; set; }

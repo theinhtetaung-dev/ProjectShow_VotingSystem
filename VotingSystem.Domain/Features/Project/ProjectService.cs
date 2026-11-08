@@ -14,34 +14,72 @@ public class ProjectService : IProjectService
     }
 
     #region Get Project List
-    public async Task<Result<List<ProjectResponseModel>>> GetProjectlist()
+    public async Task<Result<PageResult<ProjectResponseModel>>> GetProjectlist(
+        int pageNumber,
+        int pageSize,
+        string? status)
     {
         try
         {
-            var projects = await _dbContext.TblProjects
-                .Where(x => !x.DeleteFlag)
-                .ToListAsync();
-            var resModel = new List<ProjectResponseModel>();
+            pageNumber = Math.Max(1, pageNumber);
+            pageSize = Math.Clamp(pageSize, 1, 100);
 
-            foreach (var project in projects)
+            Enums.EventStatus? eventStatus = null;
+            if (!string.IsNullOrWhiteSpace(status))
             {
-                resModel.Add(new ProjectResponseModel
+                eventStatus = status.ToEventStatus();
+                if (!eventStatus.IsValidEventStatus())
+                    return Result<PageResult<ProjectResponseModel>>.ValidationError(
+                        "Status must be Upcoming, Active, Ended, or Published.");
+            }
+
+            var query = _dbContext.TblProjects
+                .AsNoTracking()
+                .Where(project => !project.DeleteFlag);
+
+            if (eventStatus.HasValue)
+            {
+                var statusValue = eventStatus.Value.ToString();
+                query = query.Where(project => project.Event.Status == statusValue);
+            }
+
+            var totalCount = await query.CountAsync();
+            var totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize));
+            pageNumber = Math.Min(pageNumber, totalPages);
+
+            var projects = await query
+                .OrderBy(project => project.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(project => new ProjectResponseModel
                 {
                     Id = project.Id,
                     EventId = project.EventId,
                     ProjectTypeId = project.ProjectTypeId,
+                    EventCode = project.Event.Code,
+                    ProjectTypeName = project.ProjectType.Name,
+                    Status = project.Event.Status,
                     Name = project.Name,
                     Description = project.Description,
                     VoteCounts = project.VoteCounts
-                });
-            }
+                })
+                .ToListAsync();
 
-            string message = projects.Count == 0 ? "No projects found." : "Success";
-            return Result<List<ProjectResponseModel>>.Success(resModel, message);
+            var pageResult = new PageResult<ProjectResponseModel>
+            {
+                Items = projects,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages
+            };
+
+            var message = totalCount == 0 ? "No projects found." : "Success";
+            return Result<PageResult<ProjectResponseModel>>.Success(pageResult, message);
         }
         catch (Exception ex)
         {
-            return Result<List<ProjectResponseModel>>.SystemError(ex.Message);
+            return Result<PageResult<ProjectResponseModel>>.SystemError(ex.Message);
         }
     }
     #endregion
@@ -51,23 +89,13 @@ public class ProjectService : IProjectService
     {
         try
         {
-            var project = await _dbContext.TblProjects
-                .FirstOrDefaultAsync(x => x.Id == id && !x.DeleteFlag);
+            var project = await GetResponseModelAsync(id);
             if (project == null)
             {
                 return Result<ProjectResponseModel>.NotFound("Item Not Found!");
             }
 
-            var resModel = new ProjectResponseModel
-            {
-                Id = project.Id,
-                EventId = project.EventId,
-                ProjectTypeId = project.ProjectTypeId,
-                Name = project.Name,
-                Description = project.Description,
-                VoteCounts = project.VoteCounts
-            };
-            return Result<ProjectResponseModel>.Success(resModel, "Success");
+            return Result<ProjectResponseModel>.Success(project, "Success");
         }
         catch (Exception ex)
         {
@@ -129,15 +157,10 @@ public class ProjectService : IProjectService
             _dbContext.TblProjects.Add(newProject);
             await _dbContext.SaveChangesAsync();
 
-            var resModel = new ProjectResponseModel
-            {
-                Id = newProject.Id,
-                EventId = newProject.EventId,
-                ProjectTypeId = newProject.ProjectTypeId,
-                Name = newProject.Name,
-                Description = newProject.Description,
-                VoteCounts = newProject.VoteCounts
-            };
+            var resModel = await GetResponseModelAsync(newProject.Id);
+            if (resModel == null)
+                return Result<ProjectResponseModel>.SystemError("Unable to load the created project.");
+
             return Result<ProjectResponseModel>.Success(resModel, "Project created successfully.");
         }
         catch (Exception ex)
@@ -223,15 +246,10 @@ public class ProjectService : IProjectService
                 await _dbContext.SaveChangesAsync();
             }
 
-            var resModel = new ProjectResponseModel
-            {
-                Id = project.Id,
-                EventId = project.EventId,
-                ProjectTypeId = project.ProjectTypeId,
-                Name = project.Name,
-                Description = project.Description,
-                VoteCounts = project.VoteCounts
-            };
+            var resModel = await GetResponseModelAsync(project.Id);
+            if (resModel == null)
+                return Result<ProjectResponseModel>.SystemError("Unable to load the updated project.");
+
             return Result<ProjectResponseModel>.Success(resModel, "Project updated successfully.");
         }
         catch (Exception ex)
@@ -265,4 +283,24 @@ public class ProjectService : IProjectService
         }
     }
     #endregion
+
+    private Task<ProjectResponseModel?> GetResponseModelAsync(long id)
+    {
+        return _dbContext.TblProjects
+            .AsNoTracking()
+            .Where(project => project.Id == id && !project.DeleteFlag)
+            .Select(project => new ProjectResponseModel
+            {
+                Id = project.Id,
+                EventId = project.EventId,
+                ProjectTypeId = project.ProjectTypeId,
+                EventCode = project.Event.Code,
+                ProjectTypeName = project.ProjectType.Name,
+                Status = project.Event.Status,
+                Name = project.Name,
+                Description = project.Description,
+                VoteCounts = project.VoteCounts
+            })
+            .FirstOrDefaultAsync();
+    }
 }
