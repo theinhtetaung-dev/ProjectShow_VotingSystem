@@ -1,8 +1,27 @@
-@if (TempData["SuccessMessage"] is string success)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">@success<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
+@using System.Text.Json
+@{
+    var notifications = new List<object>();
+
+    if (TempData["SuccessMessage"] is string success && !string.IsNullOrWhiteSpace(success))
+    {
+        notifications.Add(new { icon = "success", title = "Success", message = success, toast = true });
+    }
+
+    if (TempData["ErrorMessage"] is string error && !string.IsNullOrWhiteSpace(error))
+    {
+        notifications.Add(new { icon = "error", title = "Something went wrong", message = error, toast = false });
+    }
+
+    var validationErrors = ViewData.ModelState.Values
+        .SelectMany(entry => entry.Errors)
+        .Select(entry => entry.ErrorMessage)
+        .Where(message => !string.IsNullOrWhiteSpace(message))
+        .Distinct()
+        .ToArray();
+
+    if (validationErrors.Length > 0)
+    {
+        notifications.Add(new { icon = "warning", title = "Please check your input", message = string.Join("\n", validationErrors), toast = false });
+    }
 }
-@if (TempData["ErrorMessage"] is string error)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">@error<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
-}
+<script id="page-notifications" type="application/json">@Html.Raw(JsonSerializer.Serialize(notifications))</script>

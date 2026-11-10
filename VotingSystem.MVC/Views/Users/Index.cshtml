@@ -1,6 +1,123 @@
 @model PageResult<UserResponseModel>
-@{ ViewData["Title"] = "Users"; }
-<div class="page-toolbar mb-3"><div><p class="eyebrow mb-1">Access management</p><h1 class="h2 mb-0">Users</h1></div><a asp-action="Create" class="btn btn-primary"><svg class="app-icon"><use href="#icon-plus" /></svg>Create user</a></div>
-<partial name="_PageAlerts" />
-@if (Model.Count == 0) { <div class="alert alert-info">No users found.</div> } else { <div class="table-responsive mobile-table-shell"><table class="table table-hover align-middle mobile-card-table"><thead><tr><th>Name</th><th>Email</th><th>Role ID</th><th class="text-end">Actions</th></tr></thead><tbody>@foreach (var item in Model) { <tr><td data-label="Name"><strong>@item.Name</strong></td><td data-label="Email"><a href="mailto:@item.Email">@item.Email</a></td><td data-label="Role ID">@item.RoleId</td><td data-label="Actions" class="table-actions text-end"><a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a><a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a></td></tr> }</tbody></table></div> }
-<partial name="_Pagination" model="Model" />
+@{
+    ViewData["Title"] = "Users";
+}
+
+<div class="view is-active">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Access Control / Directory</span>
+            <h1>User accounts</h1>
+            <p>Manage system operators, contest administrators and voter accounts.</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i>
+            <span>Create user</span>
+        </a>
+    </div>
+
+    @if (Model == null || Model.Items.Count == 0)
+    {
+        <div class="panel material text-center p-5">
+            <i class="fa-regular fa-user fa-2x mb-3 text-muted"></i>
+            <h3 class="h5 mb-2">No users found</h3>
+            <p class="text-muted small">Add operators and participants to grant platform access.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Toolbar & View Switcher -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted" style="font-size:14.5px">Showing <strong class="text-white">@Model.Items.Count</strong> of <strong class="text-white">@Model.TotalCount</strong> user accounts</span>
+            </div>
+            <div class="segmented">
+                <button type="button" class="active" id="usersTableBtn" title="Table View">
+                    <i class="fa-solid fa-list"></i> Table
+                </button>
+                <button type="button" id="usersCardsBtn" title="Cards View">
+                    <i class="fa-solid fa-border-all"></i> Cards
+                </button>
+            </div>
+        </div>
+
+        <!-- Cards View -->
+        <div class="user-grid mb-4" id="usersCards" style="display:none">
+            @foreach (var item in Model.Items)
+            {
+                var initial = !string.IsNullOrWhiteSpace(item.Name) ? item.Name.Substring(0, 1).ToUpperInvariant() : "U";
+
+                <article class="user-card material">
+                    <div class="user-card-header">
+                        <span class="avatar" style="width:46px;height:46px;font-size:16px">@initial</span>
+                        <span class="badge" style="background:rgba(14,165,233,0.12);color:var(--brand2);font-size:13px">Role #@item.RoleId</span>
+                    </div>
+
+                    <div class="user-card-body">
+                        <strong style="font-size:17px">@item.Name</strong>
+                        <div class="text-muted text-truncate" style="font-size:14.5px;margin-top:4px">
+                            <i class="fa-regular fa-envelope me-1 text-info"></i> @item.Email
+                        </div>
+                    </div>
+
+                    <div class="user-card-footer">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-ghost" title="Edit user" style="font-size:13.5px">
+                            <i class="fa-regular fa-pen-to-square me-1"></i> Edit
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-ghost text-danger" title="Delete user" style="font-size:13.5px">
+                            <i class="fa-regular fa-trash-can me-1"></i> Delete
+                        </a>
+                    </div>
+                </article>
+            }
+        </div>
+
+        <!-- Table View -->
+        <div class="table-shell material" id="usersTable">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email address</th>
+                            <th>Role ID</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            var initial = !string.IsNullOrWhiteSpace(item.Name) ? item.Name.Substring(0, 1).ToUpperInvariant() : "U";
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <span class="avatar" style="width:38px;height:38px;font-size:14px">@initial</span>
+                                        <strong class="text-white" style="font-size:15.5px">@item.Name</strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="font-size:14.5px;color:#c0ccdc">@item.Email</span>
+                                </td>
+                                <td>
+                                    <span class="badge" style="background:rgba(14,165,233,0.12);color:var(--brand2);font-size:13px">Role #@item.RoleId</span>
+                                </td>
+                                <td>
+                                    <div class="row-actions justify-content-end align-items-center gap-2">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" title="Edit user" style="font-size:15px">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" title="Delete user" style="font-size:15px">
+                                            <i class="fa-regular fa-trash-can text-danger"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <partial name="_Pagination" model="Model" />
+        </div>
+    }
+</div>

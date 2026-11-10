@@ -1,6 +1,75 @@
 @model PageResult<PermissionResponseModel>
-@{ ViewData["Title"] = "Permissions"; }
-<div class="page-toolbar mb-3"><div><p class="eyebrow mb-1">Authorization</p><h1 class="h2 mb-0">Permissions</h1></div><a asp-action="Create" class="btn btn-primary"><svg class="app-icon"><use href="#icon-plus" /></svg>Create permission</a></div>
-<partial name="_PageAlerts" />
-@if (Model.Count == 0) { <div class="alert alert-info">No permissions found.</div> } else { <div class="table-responsive mobile-table-shell"><table class="table table-hover align-middle mobile-card-table"><thead><tr><th>Permission</th><th>Code</th><th>Description</th><th class="text-end">Actions</th></tr></thead><tbody>@foreach (var item in Model) { <tr><td data-label="Permission"><strong>@item.Name</strong></td><td data-label="Code"><span class="code-label">@item.Code</span></td><td data-label="Description">@(item.Description ?? "—")</td><td data-label="Actions" class="table-actions text-end"><a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a><a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a></td></tr> }</tbody></table></div> }
-<partial name="_Pagination" model="Model" />
+@{
+    ViewData["Title"] = "Permissions";
+}
+
+<div class="view is-active">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Access Control / Permissions</span>
+            <h1>System permissions</h1>
+            <p>Granular capability tokens defining accessible endpoints and operations.</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i>
+            <span>Create permission</span>
+        </a>
+    </div>
+
+    @if (Model == null || Model.Items.Count == 0)
+    {
+        <div class="panel material text-center p-5">
+            <i class="fa-solid fa-key fa-2x mb-3 text-muted"></i>
+            <h3 class="h5 mb-2">No permissions registered</h3>
+            <p class="text-muted small">Add permission definitions to enforce policy-based authorization.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-shell material">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Permission</th>
+                            <th>Code</th>
+                            <th>Description</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fa-solid fa-key" style="color:var(--brand2);font-size:12px"></i>
+                                        <strong>@item.Name</strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge" style="font-family:monospace">@item.Code</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted">@(item.Description ?? "—")</span>
+                                </td>
+                                <td>
+                                    <div class="row-actions justify-content-end">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" title="Edit permission">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" title="Delete permission">
+                                            <i class="fa-regular fa-trash-can text-danger"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <partial name="_Pagination" model="Model" />
+        </div>
+    }
+</div>

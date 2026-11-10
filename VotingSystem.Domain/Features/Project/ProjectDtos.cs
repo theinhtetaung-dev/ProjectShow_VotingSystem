@@ -27,6 +27,7 @@ public class ProjectCreateRequestModel
 public class ProjectUpdateRequestModel
 {
     public long Id { get; set; }
+    public long? ExpectedEventId { get; set; }
     public long? EventId { get; set; }
     public int? ProjectTypeId { get; set; }
     public string? Name { get; set; }

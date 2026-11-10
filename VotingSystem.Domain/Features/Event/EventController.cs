@@ -32,6 +32,13 @@ namespace VotingSystem.WebAPI.Controllers
             return response.ToActionResult();
         }
 
+        [HttpGet("{id:long}/dashboard")]
+        public async Task<ActionResult<Result<EventDashboardResponseModel>>> GetEventDashboard(long id)
+        {
+            var response = await _eventService.GetEventDashboard(id);
+            return response.ToActionResult();
+        }
+
         [HttpPost]
         public async Task<ActionResult<Result<EventResponseModel>>> CreateEvent(
             [FromBody] EventCreateRequestModel request)

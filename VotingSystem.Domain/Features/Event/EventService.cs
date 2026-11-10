@@ -351,6 +351,160 @@ public class EventService : IEventService
     }
     #endregion
 
+    #region Event Dashboard
+    public async Task<Result<EventDashboardResponseModel>> GetEventDashboard(long id)
+    {
+        try
+        {
+            var eventModel = await _dbContext.TblEvents
+                .AsNoTracking()
+                .Where(ev => ev.Id == id && !ev.DeleteFlag)
+                .Select(ev => new EventResponseModel
+                {
+                    Id = ev.Id,
+                    Name = ev.Name,
+                    Code = ev.Code,
+                    Description = ev.Description,
+                    EventStartAt = ev.EventStartAt,
+                    EventEndAt = ev.EventEndAt,
+                    VotingStartAt = ev.VotingStartAt,
+                    VotingEndAt = ev.VotingEndAt,
+                    ResultShowStartAt = ev.ResultShowStartAt,
+                    ResultShowEndAt = ev.ResultShowEndAt,
+                    Status = ev.Status,
+                    IsActive = ev.IsActive
+                })
+                .FirstOrDefaultAsync();
+
+            if (eventModel == null)
+                return Result<EventDashboardResponseModel>.NotFound("Event not found.");
+
+            var eventUsers = await _dbContext.TblUserEvents
+                .AsNoTracking()
+                .Where(item => item.EventId == id && item.IsActive && !item.DeleteFlag)
+                .Select(item => new EventPersonResponseModel
+                {
+                    UserId = item.UserId,
+                    UserEventId = item.Id,
+                    Name = item.User.Name,
+                    Email = item.User.Email,
+                    Role = item.User.Role.Name,
+                    AssignmentType = "User",
+                    AccessStatus = item.AccessStatus,
+                    AssignedAt = item.AssignedAt
+                })
+                .ToListAsync();
+
+            var eventAdmins = await _dbContext.TblAdminEvents
+                .AsNoTracking()
+                .Where(item => item.EventId == id && item.IsActive && !item.DeleteFlag)
+                .Select(item => new EventPersonResponseModel
+                {
+                    UserId = item.AdminUserId,
+                    Name = item.AdminUser.Name,
+                    Email = item.AdminUser.Email,
+                    Role = item.AdminUser.Role.Name,
+                    AssignmentType = "Admin",
+                    AssignedAt = item.AssignedAt
+                })
+                .ToListAsync();
+
+            var availableUsers = await _dbContext.TblUsers
+                .AsNoTracking()
+                .Where(user => user.IsActive && !user.DeleteFlag
+                    && user.Role.Name == "User"
+                    && !user.TblUserEventUsers.Any(item => item.EventId == id && !item.DeleteFlag))
+                .OrderBy(user => user.Name)
+                .Select(user => new EventUserOptionResponseModel
+                {
+                    Id = user.Id,
+                    Name = user.Name,
+                    Email = user.Email,
+                    Role = user.Role.Name
+                })
+                .ToListAsync();
+
+            var availableAdmins = await _dbContext.TblUsers
+                .AsNoTracking()
+                .Where(user => user.IsActive && !user.DeleteFlag
+                    && (user.Role.Name == "Admin" || user.Role.Name == "SuperAdmin")
+                    && !user.TblAdminEventAdminUsers.Any(item => item.EventId == id && !item.DeleteFlag))
+                .OrderBy(user => user.Name)
+                .Select(user => new EventUserOptionResponseModel
+                {
+                    Id = user.Id,
+                    Name = user.Name,
+                    Email = user.Email,
+                    Role = user.Role.Name
+                })
+                .ToListAsync();
+
+            var allocations = await (
+                from userEvent in _dbContext.TblUserEvents.AsNoTracking()
+                from projectType in _dbContext.TblProjectTypes.AsNoTracking()
+                join votingLimit in _dbContext.TblVotingLimits.AsNoTracking().Where(limit => !limit.DeleteFlag)
+                    on new { UserEventId = userEvent.Id, ProjectTypeId = projectType.Id }
+                    equals new { votingLimit.UserEventId, votingLimit.ProjectTypeId }
+                    into limits
+                from votingLimit in limits.DefaultIfEmpty()
+                where userEvent.EventId == id && userEvent.IsActive && !userEvent.DeleteFlag
+                    && projectType.IsActive && !projectType.DeleteFlag
+                orderby userEvent.User.Name, projectType.Name
+                select new EventVotingAllocationResponseModel
+                {
+                    UserEventId = userEvent.Id,
+                    UserId = userEvent.UserId,
+                    UserName = userEvent.User.Name,
+                    ProjectTypeId = projectType.Id,
+                    ProjectTypeName = projectType.Name,
+                    VoteLimit = votingLimit == null ? 0 : votingLimit.VoteLimit,
+                    VoteUsed = votingLimit == null ? 0 : votingLimit.VoteUsed,
+                    VoteRemaining = votingLimit == null ? 0 : votingLimit.VoteLimit - votingLimit.VoteUsed
+                }).ToListAsync();
+
+            var projects = await _dbContext.TblProjects
+                .AsNoTracking()
+                .Where(project => project.EventId == id && !project.DeleteFlag)
+                .OrderBy(project => project.Name)
+                .Select(project => new EventProjectResponseModel
+                {
+                    Id = project.Id,
+                    Name = project.Name,
+                    Description = project.Description,
+                    ProjectTypeName = project.ProjectType.Name,
+                    Status = project.Event.Status,
+                    VoteCounts = project.VoteCounts
+                })
+                .ToListAsync();
+
+            var projectTypes = await _dbContext.TblProjectTypes
+                .AsNoTracking()
+                .Where(type => type.IsActive && !type.DeleteFlag)
+                .OrderBy(type => type.Name)
+                .Select(type => new EventProjectTypeResponseModel { Id = type.Id, Name = type.Name })
+                .ToListAsync();
+
+            eventUsers.AddRange(eventAdmins);
+            var dashboard = new EventDashboardResponseModel
+            {
+                Event = eventModel,
+                People = eventUsers.OrderBy(person => person.Name).ToList(),
+                AvailableUsers = availableUsers,
+                AvailableAdmins = availableAdmins,
+                VotingAllocations = allocations,
+                Projects = projects,
+                ProjectTypes = projectTypes
+            };
+
+            return Result<EventDashboardResponseModel>.Success(dashboard);
+        }
+        catch (Exception ex)
+        {
+            return Result<EventDashboardResponseModel>.SystemError(ex.Message);
+        }
+    }
+    #endregion
+
     #region Delete Event
     public async Task<Result<EventResponseModel>> DeleteEvent(long id)
     {

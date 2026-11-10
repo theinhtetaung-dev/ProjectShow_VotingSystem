@@ -1,6 +1,71 @@
 @model PageResult<RoleResponseModel>
-@{ ViewData["Title"] = "Roles"; }
-<div class="page-toolbar mb-3"><div><p class="eyebrow mb-1">Authorization</p><h1 class="h2 mb-0">Roles</h1></div><a asp-action="Create" class="btn btn-primary"><svg class="app-icon"><use href="#icon-plus" /></svg>Create role</a></div>
-<partial name="_PageAlerts" />
-@if (Model.Count == 0) { <div class="alert alert-info">No roles found.</div> } else { <div class="table-responsive mobile-table-shell"><table class="table table-hover align-middle mobile-card-table"><thead><tr><th>Role</th><th>Description</th><th class="text-end">Actions</th></tr></thead><tbody>@foreach (var item in Model) { <tr><td data-label="Role"><strong>@item.Name</strong></td><td data-label="Description">@(item.Description ?? "—")</td><td data-label="Actions" class="table-actions text-end"><a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a><a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a></td></tr> }</tbody></table></div> }
-<partial name="_Pagination" model="Model" />
+@{
+    ViewData["Title"] = "Roles";
+}
+
+<div class="view is-active">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Access Control / Roles</span>
+            <h1>Security roles</h1>
+            <p>Define administrative clearance levels and role hierarchy.</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i>
+            <span>Create role</span>
+        </a>
+    </div>
+
+    @if (Model == null || Model.Items.Count == 0)
+    {
+        <div class="panel material text-center p-5">
+            <i class="fa-solid fa-user-shield fa-2x mb-3 text-muted"></i>
+            <h3 class="h5 mb-2">No roles configured</h3>
+            <p class="text-muted small">Configure roles such as SuperAdmin, Admin, and Voter.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-shell material">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Role designation</th>
+                            <th>Description</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fa-solid fa-shield-halved" style="color:var(--brand2)"></i>
+                                        <strong>@item.Name</strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-muted">@(item.Description ?? "No description provided.")</span>
+                                </td>
+                                <td>
+                                    <div class="row-actions justify-content-end">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" title="Edit role">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" title="Delete role">
+                                            <i class="fa-regular fa-trash-can text-danger"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <partial name="_Pagination" model="Model" />
+        </div>
+    }
+</div>

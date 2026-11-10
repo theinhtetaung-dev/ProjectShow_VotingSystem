@@ -13,6 +13,7 @@ public class ProjectCreateRequestModel
 public class ProjectUpdateRequestModel : ProjectCreateRequestModel
 {
     public long Id { get; set; }
+    public long? ExpectedEventId { get; set; }
 }
 
 public class ProjectResponseModel

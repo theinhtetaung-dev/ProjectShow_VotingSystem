@@ -43,12 +43,80 @@ public class EventsController : Controller
 
     public async Task<IActionResult> Details(long id)
     {
-        var result = await GetEventById(id);
+        ApiResult<EventDashboardViewModel>? result;
+        try
+        {
+            result = await _httpClient.GetFromJsonAsync<ApiResult<EventDashboardViewModel>>($"{EventApiUrl}/{id}/dashboard");
+        }
+        catch (Exception ex) when (IsApiException(ex))
+        {
+            LogApiError(ex);
+            return RedirectToIndexWithError("Unable to load the event dashboard.");
+        }
+
         if (result?.IsSuccess != true || result.Data is null)
             return RedirectToIndexWithError(result?.Message ?? "Event not found.");
 
         return View(result.Data);
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "SuperAdmin")]
+    public Task<IActionResult> AssignEventUser(AssignUserToEventRequestModel model) =>
+        RunDashboardOperation(HttpMethod.Post, "api/User/assign-user-to-event", model, model.EventId, "people");
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "SuperAdmin")]
+    public Task<IActionResult> RemoveEventUser(RemoveUserFromEventRequestModel model) =>
+        RunDashboardOperation(HttpMethod.Post, "api/User/remove-user-from-event", model, model.EventId, "people");
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "SuperAdmin")]
+    public Task<IActionResult> AssignEventAdmin(AssignAdminToEventRequestModel model) =>
+        RunDashboardOperation(HttpMethod.Post, "api/User/assign-admin-to-event", model, model.EventId, "people");
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "SuperAdmin")]
+    public Task<IActionResult> RemoveEventAdmin(RemoveAdminFromEventRequestModel model) =>
+        RunDashboardOperation(HttpMethod.Post, "api/User/remove-admin-from-event", model, model.EventId, "people");
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> UpdateVotingAllocation(long eventId, VotingLimitUpdateRequestModel model) =>
+        RunDashboardOperation(HttpMethod.Patch, "api/Voting/limit", model, eventId, "allocations");
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> CreateEventProject(long eventId, int projectTypeId, string name, string? description) =>
+        RunDashboardOperation(HttpMethod.Post, "api/Project", new ProjectCreateRequestModel
+        {
+            EventId = eventId,
+            ProjectTypeId = projectTypeId,
+            Name = name,
+            Description = description
+        }, eventId, "projects");
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> EditEventProject(long eventId, long id, int projectTypeId, string name, string? description) =>
+        RunDashboardOperation(HttpMethod.Patch, "api/Project", new ProjectUpdateRequestModel
+        {
+            Id = id,
+            ExpectedEventId = eventId,
+            EventId = eventId,
+            ProjectTypeId = projectTypeId,
+            Name = name,
+            Description = description
+        }, eventId, "projects");
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> DeleteEventProject(long eventId, long id) =>
+        RunDashboardOperation(HttpMethod.Delete, $"api/Project/{id}?eventId={eventId}", null, eventId, "projects");
 
     public IActionResult Create()
     {
@@ -191,6 +259,33 @@ public class EventsController : Controller
             LogApiError(ex);
             return null;
         }
+    }
+
+    private async Task<IActionResult> RunDashboardOperation(
+        HttpMethod method,
+        string url,
+        object? model,
+        long eventId,
+        string tab)
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(method, url);
+            if (model != null)
+                request.Content = JsonContent.Create(model);
+
+            using var response = await _httpClient.SendAsync(request);
+            var result = await response.Content.ReadFromJsonAsync<ApiResult<System.Text.Json.JsonElement>>();
+            TempData[result?.IsSuccess == true ? "SuccessMessage" : "ErrorMessage"] =
+                result?.Message ?? "The event operation failed.";
+        }
+        catch (Exception ex) when (IsApiException(ex))
+        {
+            LogApiError(ex);
+            TempData["ErrorMessage"] = "Unable to connect to the API. Please try again.";
+        }
+
+        return Redirect($"{Url.Action(nameof(Details), new { id = eventId })}#{tab}");
     }
 
     private IActionResult RedirectToIndexWithError(string message)

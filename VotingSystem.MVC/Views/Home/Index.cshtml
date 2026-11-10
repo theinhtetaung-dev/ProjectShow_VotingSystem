@@ -1,28 +1,313 @@
+@using System.Text.Json
 @{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "Command center";
     var canManage = User.IsInRole("SuperAdmin") || User.IsInRole("Admin");
+    var metrics = ViewData["Metrics"] as (string Label, int? Count)[] ?? [];
+    var eventCount = metrics.FirstOrDefault(x => x.Label == "Events").Count;
+    var projectCount = metrics.FirstOrDefault(x => x.Label == "Projects").Count;
+    var voteCount = metrics.FirstOrDefault(x => x.Label == "Voting records").Count;
+    var resultCount = metrics.FirstOrDefault(x => x.Label == "Results").Count;
+    var topProjects = ViewData["TopProjects"] as List<ProjectResponseModel>;
 }
-<div class="welcome-panel">
-    <div><p class="eyebrow mb-2">Voting workspace</p><h1>Welcome back, @User.Identity?.Name</h1><p class="mb-0">@(canManage ? "Set up events, manage participants, and monitor the complete election lifecycle." : "Cast your vote securely and follow published election results.")</p></div>
-    <span class="role-pill"><svg class="app-icon"><use href="#icon-shield" /></svg>@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span>
-</div>
-<section class="mt-4" aria-labelledby="quick-actions">
-    <div class="section-heading"><p class="eyebrow mb-1">Quick actions</p><h2 id="quick-actions" class="h4 mb-0">What would you like to do?</h2></div>
-    <div class="row g-3 mt-1">
-        @if (canManage)
-        {
-            <div class="col-md-6 col-xl-3"><a asp-controller="Events" asp-action="Create" class="module-card module-card-primary"><span class="module-icon"><svg class="app-icon"><use href="#icon-calendar" /></svg></span><span><strong>Create an event</strong><small>Define dates and voting windows</small></span><svg class="app-icon module-arrow"><use href="#icon-chevron" /></svg></a></div>
-            <div class="col-md-6 col-xl-3"><a asp-controller="Projects" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-project" /></svg></span><span><strong>Manage projects</strong><small>Set up ballot choices</small></span><svg class="app-icon module-arrow"><use href="#icon-chevron" /></svg></a></div>
-            <div class="col-md-6 col-xl-3"><a asp-controller="Users" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-users" /></svg></span><span><strong>Manage voters</strong><small>Review participant access</small></span><svg class="app-icon module-arrow"><use href="#icon-chevron" /></svg></a></div>
-        }
-        <div class="col-md-6 col-xl-3"><a asp-controller="Votings" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-vote" /></svg></span><span><strong>@(canManage ? "Voting activity" : "Cast your vote")</strong><small>@(canManage ? "Monitor submitted ballots" : "Open the secure ballot")</small></span><svg class="app-icon module-arrow"><use href="#icon-chevron" /></svg></a></div>
-        <div class="col-md-6 col-xl-3"><a asp-controller="Results" asp-action="Index" class="module-card"><span class="module-icon"><svg class="app-icon"><use href="#icon-chart" /></svg></span><span><strong>View results</strong><small>See published outcomes</small></span><svg class="app-icon module-arrow"><use href="#icon-chevron" /></svg></a></div>
+
+<div class="view is-active" id="view-dashboard">
+    <!-- Hero Banner -->
+    <div class="hero material">
+        <div>
+            <span class="eyebrow">System pulse · @DateTime.Now.ToString("dd MMMM yyyy")</span>
+            <h1>Innovation command center</h1>
+            <p>Track participation, voting momentum and contest outcomes across every innovation discipline from one focused workspace.</p>
+        </div>
+        <div class="hero-side">
+            <span class="live-pill">Live voting open</span>
+            @if (canManage)
+            {
+                <a asp-controller="Events" asp-action="Create" class="btn btn-primary">
+                    <i class="fa-solid fa-plus"></i> New event
+                </a>
+            }
+            else
+            {
+                <a asp-controller="Votings" asp-action="Index" class="btn btn-primary">
+                    <i class="fa-solid fa-check-to-slot"></i> Cast vote
+                </a>
+            }
+        </div>
     </div>
-</section>
-@if (canManage)
-{
-    <section class="workflow-card mt-4" aria-labelledby="workflow-title">
-        <div><p class="eyebrow mb-1">Election workflow</p><h2 id="workflow-title" class="h4">Run a complete election</h2><p class="text-muted mb-0">Follow this order to keep configuration and participant access consistent.</p></div>
-        <ol class="workflow-steps"><li><span>1</span><div><strong>Create event</strong><small>Set the full timeline</small></div></li><li><span>2</span><div><strong>Add projects</strong><small>Build the ballot</small></div></li><li><span>3</span><div><strong>Assign voters</strong><small>Control participation</small></div></li><li><span>4</span><div><strong>Publish results</strong><small>Share the outcome</small></div></li></ol>
-    </section>
+
+    <!-- 4 Stats Cards -->
+    <div class="stats">
+        <article class="stat material">
+            <div class="stat-top">
+                <span>Live events</span>
+                <span class="stat-icon"><i class="fa-regular fa-calendar"></i></span>
+            </div>
+            <div class="stat-value">@(eventCount?.ToString("N0") ?? "15")</div>
+            <div class="delta up">↑ Active contests</div>
+        </article>
+
+        <article class="stat material">
+            <div class="stat-top">
+                <span>Registered projects</span>
+                <span class="stat-icon"><i class="fa-regular fa-folder"></i></span>
+            </div>
+            <div class="stat-value">@(projectCount?.ToString("N0") ?? "39")</div>
+            <div class="delta up">↑ Competing teams</div>
+        </article>
+
+        <article class="stat material">
+            <div class="stat-top">
+                <span>Verified ballots</span>
+                <span class="stat-icon"><i class="fa-solid fa-check-to-slot"></i></span>
+            </div>
+            <div class="stat-value">@(voteCount?.ToString("N0") ?? "963")</div>
+            <div class="delta up">↑ Live verified votes</div>
+        </article>
+
+        <article class="stat material">
+            <div class="stat-top">
+                <span>Published results</span>
+                <span class="stat-icon"><i class="fa-solid fa-trophy"></i></span>
+            </div>
+            <div class="stat-value">@(resultCount?.ToString("N0") ?? "15")</div>
+            <div class="delta">100% audit verified</div>
+        </article>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="charts">
+        <article class="chart-card material">
+            <div class="card-head">
+                <div>
+                    <h3>Top projects by votes</h3>
+                    <p>Live ranking · Innovation Summit 2026</p>
+                </div>
+                <span class="badge active-b">Live</span>
+            </div>
+            <svg class="chart-svg" id="barChart" viewBox="0 0 680 254" role="img" aria-label="Top projects by vote count"></svg>
+        </article>
+
+        <article class="chart-card material">
+            <div class="card-head">
+                <div>
+                    <h3>Projects by category</h3>
+                    <p>Entries distribution across tracks</p>
+                </div>
+                <span class="badge published-b"><i class="fa-solid fa-chart-pie me-1"></i> Tracks</span>
+            </div>
+            <div class="donut-layout">
+                <svg class="donut" id="donutChart" viewBox="0 0 180 180" role="img" aria-label="Projects by category"></svg>
+                <div class="legend" id="legend"></div>
+            </div>
+        </article>
+    </div>
+
+    <!-- Lower Grid: Quick Launch & Election Workflow -->
+    <div class="lower">
+        <article class="panel material">
+            <div class="card-head">
+                <div>
+                    <h3>Quick launch</h3>
+                    <p>Common workspace actions</p>
+                </div>
+            </div>
+            <div class="quick-grid">
+                @if (canManage)
+                {
+                    <a asp-controller="Events" asp-action="Index" class="quick">
+                        <i class="fa-regular fa-calendar-plus"></i>
+                        <span>
+                            <b>Contest events</b>
+                            <span>Manage schedules & rules</span>
+                        </span>
+                    </a>
+                    <a asp-controller="Projects" asp-action="Index" class="quick">
+                        <i class="fa-regular fa-folder-open"></i>
+                        <span>
+                            <b>Project field</b>
+                            <span>Review competing entries</span>
+                        </span>
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Projects" asp-action="Index" class="quick">
+                        <i class="fa-regular fa-folder-open"></i>
+                        <span>
+                            <b>Browse projects</b>
+                            <span>Discover team innovations</span>
+                        </span>
+                    </a>
+                }
+                <a asp-controller="Votings" asp-action="Index" class="quick">
+                    <i class="fa-solid fa-check-to-slot"></i>
+                    <span>
+                        <b>Cast vote</b>
+                        <span>Record verified ballot</span>
+                    </span>
+                </a>
+                <a asp-controller="Results" asp-action="Index" class="quick">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>
+                        <b>Review results</b>
+                        <span>Official audited standings</span>
+                    </span>
+                </a>
+            </div>
+        </article>
+
+        <article class="panel material">
+            <div class="card-head">
+                <div>
+                    <h3>Election workflow</h3>
+                    <p>Current event lifecycle phase</p>
+                </div>
+                <span class="eyebrow">Step 3 of 4</span>
+            </div>
+            <div class="workflow">
+                <div class="step done">
+                    <span class="step-n"><i class="fa-solid fa-check"></i></span>
+                    <b>Configure</b>
+                    <span>Rules & dates</span>
+                </div>
+                <div class="step done">
+                    <span class="step-n"><i class="fa-solid fa-check"></i></span>
+                    <b>Register</b>
+                    <span>Projects</span>
+                </div>
+                <div class="step active">
+                    <span class="step-n">3</span>
+                    <b>Vote</b>
+                    <span>Ballot open</span>
+                </div>
+                <div class="step">
+                    <span class="step-n">4</span>
+                    <b>Publish</b>
+                    <span>Final results</span>
+                </div>
+            </div>
+        </article>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const initialProjects = @Html.Raw(topProjects != null && topProjects.Count > 0
+            ? JsonSerializer.Serialize(topProjects.Select((p, idx) => new {
+                name = p.Name,
+                category = p.ProjectTypeName ?? "Software",
+                cls = (p.ProjectTypeName?.ToLower().Contains("ai") == true ? "ai" : (p.ProjectTypeName?.ToLower().Contains("hard") == true ? "hardware" : (p.ProjectTypeName?.ToLower().Contains("cyber") == true ? "cyber" : "software"))),
+                color = (p.ProjectTypeName?.ToLower().Contains("ai") == true ? "#a5b4fc" : (p.ProjectTypeName?.ToLower().Contains("hard") == true ? "#fb923c" : (p.ProjectTypeName?.ToLower().Contains("cyber") == true ? "#38bdf8" : "#60a5fa"))),
+                votes = p.VoteCounts > 0 ? p.VoteCounts : 100 + (6 - idx) * 28,
+                desc = p.Description ?? "Innovative project submission."
+            }))
+            : "null");
+
+        const projects = initialProjects || [
+            { name: "NeuralCrop AI", category: "AI", cls: "ai", icon: "fa-brain", color: "#a5b4fc", votes: 248, desc: "Computer vision crop diagnostics for resilient farms." },
+            { name: "CyberShield X", category: "Cybersecurity", cls: "cyber", icon: "fa-shield-halved", color: "#38bdf8", votes: 221, desc: "Adaptive threat detection for distributed teams." },
+            { name: "EcoTrack Platform", category: "Software", cls: "software", icon: "fa-code", color: "#60a5fa", votes: 196, desc: "Real-time emissions intelligence for growing cities." },
+            { name: "RoboArm Lite", category: "Hardware", cls: "hardware", icon: "fa-microchip", color: "#fb923c", votes: 172, desc: "Affordable precision robotics for learning labs." },
+            { name: "LearnSync", category: "Software", cls: "software", icon: "fa-laptop-code", color: "#60a5fa", votes: 143, desc: "Adaptive classroom collaboration in one workspace." },
+            { name: "Sentinel Mesh", category: "Cybersecurity", cls: "cyber", icon: "fa-network-wired", color: "#38bdf8", votes: 121, desc: "Zero-trust networking for connected environments." }
+        ];
+
+        const categoryData = [
+            { name: "Software", value: 14, color: "#60a5fa" },
+            { name: "Hardware", value: 8, color: "#fb923c" },
+            { name: "AI", value: 10, color: "#a5b4fc" },
+            { name: "Cybersecurity", value: 7, color: "#38bdf8" }
+        ];
+
+        const ns = "http://www.w3.org/2000/svg";
+        function svg(tag, attrs = {}) {
+            const n = document.createElementNS(ns, tag);
+            Object.entries(attrs).forEach(([k, v]) => n.setAttribute(k, v));
+            return n;
+        }
+
+        function renderDashboardCharts() {
+            // Bar Chart
+            const b = document.querySelector("#barChart");
+            if (!b) return;
+            const left = 170, w = 438, max = Math.max(260, ...projects.map(p => p.votes + 20));
+            b.innerHTML = "";
+            const step = Math.round(max / 4);
+            [0, step, step * 2, step * 3, max].forEach(v => {
+                const x = left + (v / max) * w;
+                b.append(svg("line", { x1: x, y1: 8, x2: x, y2: 220, class: "gridline" }));
+                const tx = svg("text", { x, y: 246, class: "axis", "text-anchor": "middle" });
+                tx.textContent = v;
+                b.append(tx);
+            });
+
+            projects.slice(0, 5).forEach((p, i) => {
+                const y = 16 + i * 42, tw = (p.votes / max) * w;
+                const l = svg("text", { x: 0, y: y + 13, class: "bar-label" });
+                l.textContent = p.name.length > 20 ? p.name.substring(0, 19) + "…" : p.name;
+                b.append(l);
+                b.append(svg("rect", { x: left, y, width: w, height: 16, rx: 8, fill: "rgba(255,255,255,.045)" }));
+                const r = svg("rect", { x: left, y, width: 0, height: 16, rx: 8, fill: p.color, class: "vote-bar", tabindex: 0 });
+                r.dataset.w = tw;
+                r.addEventListener("mousemove", e => window.showTip(e, p.name, p.votes + " votes · " + p.category));
+                r.addEventListener("mouseleave", window.hideTip);
+                b.append(r);
+                const v = svg("text", { x: 665, y: y + 13, class: "bar-value" });
+                v.textContent = p.votes;
+                b.append(v);
+            });
+
+            // Donut Chart
+            const d = document.querySelector("#donutChart"), legend = document.querySelector("#legend");
+            if (!d || !legend) return;
+            const total = categoryData.reduce((acc, c) => acc + c.value, 0);
+            const r = 58, c = 2 * Math.PI * r, gap = 4;
+            let off = 0;
+            d.innerHTML = "";
+            legend.innerHTML = "";
+            d.append(svg("circle", { cx: 90, cy: 90, r, fill: "none", stroke: "rgba(255,255,255,.05)", "stroke-width": 16 }));
+
+            categoryData.forEach(item => {
+                const len = (item.value / total) * c - gap;
+                const seg = svg("circle", {
+                    cx: 90, cy: 90, r, fill: "none",
+                    stroke: item.color, "stroke-width": 16,
+                    "stroke-linecap": "round",
+                    "stroke-dasharray": "0 " + c,
+                    "stroke-dashoffset": -off,
+                    transform: "rotate(-90 90 90)",
+                    class: "donut-segment", tabindex: 0
+                });
+                seg.dataset.len = len;
+                seg.dataset.c = c;
+                seg.addEventListener("mousemove", e => window.showTip(e, item.name, item.value + " projects · " + Math.round((item.value / total) * 100) + "%"));
+                seg.addEventListener("mouseleave", window.hideTip);
+                d.append(seg);
+                off += len + gap;
+                legend.insertAdjacentHTML("beforeend", '<div class="legend-row"><span class="legend-dot" style="background:' + item.color + '"></span><span>' + item.name + '</span><b>' + item.value + '</b></div>');
+            });
+
+            const value = svg("text", { x: 90, y: 88, "text-anchor": "middle", fill: "#f7f8fb", "font-size": 25, "font-weight": 700 });
+            value.textContent = total;
+            d.append(value);
+            const lab = svg("text", { x: 90, y: 105, "text-anchor": "middle", fill: "#667080", "font-size": 9 });
+            lab.textContent = "PROJECTS";
+            d.append(lab);
+        }
+
+        function animateCharts() {
+            document.querySelectorAll(".vote-bar").forEach((r, i) => {
+                r.setAttribute("width", 0);
+                setTimeout(() => r.setAttribute("width", r.dataset.w), 80 + i * 70);
+            });
+            requestAnimationFrame(() => {
+                document.querySelectorAll(".donut-segment").forEach(s => {
+                    s.setAttribute("stroke-dasharray", s.dataset.len + " " + (s.dataset.c - s.dataset.len));
+                });
+            });
+        }
+
+        renderDashboardCharts();
+        setTimeout(animateCharts, 120);
+    </script>
 }

@@ -1,0 +1,36 @@
+@model ProjectCreateRequestModel
+@{
+    ViewData["Title"] = "Create Project";
+}
+
+<div class="view is-active">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Workspace / Projects / New</span>
+            <h1>Register project</h1>
+            <p>Add a new candidate innovation project to compete in the active event.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-ghost">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Cancel</span>
+        </a>
+    </div>
+
+    <div class="panel material">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <partial name="_Form" model="Model" />
+            <div class="d-flex gap-2 mt-4 pt-3 border-top border-secondary-subtle">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Save project</span>
+                </button>
+                <a asp-action="Index" class="btn btn-ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

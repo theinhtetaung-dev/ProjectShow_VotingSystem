@@ -78,6 +78,65 @@ public class EventResponseModel
     public bool IsActive { get; set; }
 }
 
+public class EventDashboardViewModel
+{
+    public EventResponseModel Event { get; set; } = null!;
+    public List<EventPersonViewModel> People { get; set; } = [];
+    public List<EventUserOptionViewModel> AvailableUsers { get; set; } = [];
+    public List<EventUserOptionViewModel> AvailableAdmins { get; set; } = [];
+    public List<EventVotingAllocationViewModel> VotingAllocations { get; set; } = [];
+    public List<EventProjectViewModel> Projects { get; set; } = [];
+    public List<EventProjectTypeViewModel> ProjectTypes { get; set; } = [];
+}
+
+public class EventPersonViewModel
+{
+    public long UserId { get; set; }
+    public long? UserEventId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+    public string AssignmentType { get; set; } = string.Empty;
+    public string? AccessStatus { get; set; }
+    public DateTime AssignedAt { get; set; }
+}
+
+public class EventUserOptionViewModel
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+}
+
+public class EventVotingAllocationViewModel
+{
+    public long UserEventId { get; set; }
+    public long UserId { get; set; }
+    public string UserName { get; set; } = string.Empty;
+    public int ProjectTypeId { get; set; }
+    public string ProjectTypeName { get; set; } = string.Empty;
+    public int VoteLimit { get; set; }
+    public int VoteUsed { get; set; }
+    public int VoteRemaining { get; set; }
+}
+
+public class EventProjectViewModel
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string ProjectTypeName { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public int VoteCounts { get; set; }
+}
+
+public class EventProjectTypeViewModel
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+}
+
 public class ApiResult<T>
 {
     public bool IsSuccess { get; set; }

@@ -1,0 +1,9 @@
+@model ProjectResponseModel
+<div class="d-flex gap-2 flex-wrap">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm" aria-label="Edit @Model.Name">
+        <i class="fa-regular fa-pen-to-square"></i> Edit
+    </a>
+    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-sm btn-ghost text-danger" aria-label="Delete @Model.Name">
+        <i class="fa-regular fa-trash-can"></i> Delete
+    </a>
+</div>

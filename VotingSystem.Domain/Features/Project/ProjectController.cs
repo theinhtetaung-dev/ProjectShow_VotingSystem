@@ -57,9 +57,9 @@ public class ProjectController : ControllerBase
     }
 
     [HttpDelete("{id:long}")]
-    public async Task<ActionResult<Result<ProjectResponseModel>>> DeleteProject(long id)
+    public async Task<ActionResult<Result<ProjectResponseModel>>> DeleteProject(long id, long? eventId = null)
     {
-        var response = await _projectService.DeleteProject(id);
+        var response = await _projectService.DeleteProject(id, eventId);
         return response.ToActionResult();
     }
 }

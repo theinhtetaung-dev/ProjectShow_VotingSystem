@@ -60,11 +60,17 @@ public class VotingService : IVotingService
                 return Result<VotingLimitResponseModel>.ValidationError("Vote limit must be zero or greater.");
             }
 
-            var userEventExists = await _dbContext.TblUserEvents
-                .AnyAsync(x => x.Id == request.UserEventId && !x.DeleteFlag);
-            if (!userEventExists)
+            var userEvent = await _dbContext.TblUserEvents
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == request.UserEventId && !x.DeleteFlag);
+            if (userEvent == null)
             {
                 return Result<VotingLimitResponseModel>.ValidationError("User event not found.");
+            }
+
+            if (request.EventId.HasValue && userEvent.EventId != request.EventId.Value)
+            {
+                return Result<VotingLimitResponseModel>.ValidationError("User does not belong to the selected event.");
             }
 
             var projectTypeExists = await _dbContext.TblProjectTypes

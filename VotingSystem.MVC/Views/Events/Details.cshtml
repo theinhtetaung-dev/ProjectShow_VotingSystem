@@ -1,26 +1,770 @@
-@model EventResponseModel
+@model EventDashboardViewModel
 @{
-    ViewData["Title"] = "Event Details";
+    ViewData["Title"] = "Event Management Portal";
+    var ev = Model.Event;
+    var isSuperAdmin = User.IsInRole("SuperAdmin");
+    var statusLower = ev.Status?.ToLowerInvariant() ?? "";
+    var badgeCls = statusLower switch {
+        "active" => "active-b",
+        "upcoming" => "upcoming-b",
+        "published" => "published-b",
+        _ => "ended-b"
+    };
+
+    var now = DateTime.Now;
+    var isVotingLive = ev.VotingStartAt <= now && now <= ev.VotingEndAt;
+    var totalParticipants = Model.People.Count(p => p.Role == "User" || p.AssignmentType != "Admin");
+    var totalAdmins = Model.People.Count(p => p.Role == "Admin" || p.Role == "SuperAdmin" || p.AssignmentType == "Admin");
+    var totalProjects = Model.Projects.Count;
+    var totalVotesCast = Model.Projects.Sum(p => p.VoteCounts);
 }
 
-<div class="page-toolbar mb-3">
-    <h1 class="h2 mb-0">Event details</h1>
-    <span class="badge bg-secondary fs-6">@Model.Status</span>
+<div class="view is-active">
+    <!-- Top Hero Header (Solid Colors - No Gradient) -->
+    <div class="portal-hero material">
+        <div class="portal-hero-top">
+            <div>
+                <span class="eyebrow"><i class="fa-solid fa-sliders me-1"></i> Contest Management Portal</span>
+                <h1 class="portal-hero-title">@ev.Name</h1>
+                <p class="portal-hero-desc">
+                    @(string.IsNullOrWhiteSpace(ev.Description) ? "Live innovation challenge management portal. Monitor participant allocations, register contest projects, and control administrative privileges." : ev.Description)
+                </p>
+                <div class="portal-hero-chips">
+                    <span class="badge @badgeCls">
+                        @if (statusLower == "active")
+                        {
+                            <i class="fa-solid fa-circle-dot me-1 text-success"></i>
+                        }
+                        @ev.Status
+                    </span>
+                    <span class="copy-pill" data-copy="@ev.Code" title="Click to copy contest code">
+                        <i class="fa-regular fa-copy"></i>
+                        <strong>@ev.Code</strong>
+                    </span>
+                    <span class="portal-chip">
+                        <i class="fa-regular fa-calendar-check"></i>
+                        <span>Event: @ev.EventStartAt.ToString("dd MMM yyyy") – @ev.EventEndAt.ToString("dd MMM yyyy")</span>
+                    </span>
+                    @if (isVotingLive)
+                    {
+                        <span class="portal-chip border-success text-success">
+                            <i class="fa-solid fa-bolt text-success"></i>
+                            <strong>Voting is currently LIVE</strong>
+                        </span>
+                    }
+                </div>
+            </div>
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                <a asp-action="Edit" asp-route-id="@ev.Id" class="btn btn-primary">
+                    <i class="fa-regular fa-pen-to-square me-1"></i>
+                    <span>Edit Event</span>
+                </a>
+                <a asp-action="Index" class="btn btn-ghost">
+                    <i class="fa-solid fa-arrow-left me-1"></i>
+                    <span>All Events</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 KPI Metrics Stat Cards -->
+    <div class="portal-kpi-grid">
+        <div class="portal-kpi-card material">
+            <div class="kpi-icon blue">
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-val">@totalParticipants</span>
+                <span class="kpi-lbl">Assigned Participants</span>
+            </div>
+        </div>
+
+        <div class="portal-kpi-card material">
+            <div class="kpi-icon purple">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-val">@totalAdmins</span>
+                <span class="kpi-lbl">Contest Administrators</span>
+            </div>
+        </div>
+
+        <div class="portal-kpi-card material">
+            <div class="kpi-icon green">
+                <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-val">@totalProjects</span>
+                <span class="kpi-lbl">Competing Projects</span>
+            </div>
+        </div>
+
+        <div class="portal-kpi-card material">
+            <div class="kpi-icon amber">
+                <i class="fa-solid fa-check-to-slot"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-val">@totalVotesCast</span>
+                <span class="kpi-lbl">Total Votes Cast</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modern Navigation Bar for Portal Sections -->
+    <nav class="portal-navbar material" aria-label="Event Portal Navigation">
+        <ul class="portal-nav-links" id="eventDashboardTabs">
+            <li>
+                <button class="portal-nav-btn active" id="btn-overview" data-portal-tab="overview" type="button">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Overview &amp; Schedule</span>
+                </button>
+            </li>
+            <li>
+                <button class="portal-nav-btn" id="btn-people" data-portal-tab="people" type="button">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Users &amp; Admins</span>
+                    <span class="badge">@Model.People.Count</span>
+                </button>
+            </li>
+            <li>
+                <button class="portal-nav-btn" id="btn-allocations" data-portal-tab="allocations" type="button">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Voting Allocations</span>
+                    <span class="badge">@Model.VotingAllocations.Count</span>
+                </button>
+            </li>
+            <li>
+                <button class="portal-nav-btn" id="btn-projects" data-portal-tab="projects" type="button">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>Contest Projects</span>
+                    <span class="badge">@Model.Projects.Count</span>
+                </button>
+            </li>
+        </ul>
+        <div class="d-none d-md-flex align-items-center gap-2">
+            <span class="text-muted small">Portal Mode</span>
+            <span class="badge active-b"><i class="fa-solid fa-circle-check text-success me-1"></i> Live</span>
+        </div>
+    </nav>
+
+    <!-- Tab Contents Containers -->
+    <div id="portalTabContents">
+        <!-- Tab 1: Overview & Schedule -->
+        <section class="portal-pane active" id="pane-overview">
+            <div class="row g-4 mb-4">
+                <div class="col-lg-5">
+                    <div class="panel material h-100 p-4">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="eyebrow"><i class="fa-solid fa-align-left me-1"></i> Event Information</span>
+                        </div>
+                        <h3 class="h4 text-white mb-3">@ev.Name</h3>
+                        <p class="text-sub" style="font-size:15px;line-height:1.75">
+                            @(string.IsNullOrWhiteSpace(ev.Description) ? "No detailed description provided for this contest event." : ev.Description)
+                        </p>
+                        <hr style="border-color:var(--edge);margin:1.75rem 0" />
+                        <div class="d-flex flex-column gap-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted" style="font-size:14.5px">Event Code:</span>
+                                <span class="badge badge-code" style="font-size:13px">@ev.Code</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted" style="font-size:14.5px">Contest Status:</span>
+                                <span class="badge @badgeCls" style="font-size:13px">@ev.Status</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted" style="font-size:14.5px">Registration State:</span>
+                                <span class="badge active-b" style="font-size:13px">Enabled</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="panel material h-100 p-4">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="eyebrow"><i class="fa-regular fa-clock me-1"></i> Lifecycle &amp; Schedule Windows</span>
+                        </div>
+                        <div class="d-flex flex-column gap-3">
+                            <div class="timeline-card-item">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="fa-regular fa-calendar-check text-info" style="font-size:22px"></i>
+                                    <div>
+                                        <div class="text-muted text-uppercase tracking-wider" style="font-size:12px;font-weight:600">Competition Window</div>
+                                        <strong class="text-white" style="font-size:15.5px">@ev.EventStartAt.ToString("dd MMM yyyy · hh:mm tt") – @ev.EventEndAt.ToString("dd MMM yyyy · hh:mm tt")</strong>
+                                    </div>
+                                </div>
+                                <span class="badge active-b">Scheduled</span>
+                            </div>
+
+                            <div class="timeline-card-item">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="fa-solid fa-check-to-slot text-warning" style="font-size:22px"></i>
+                                    <div>
+                                        <div class="text-muted text-uppercase tracking-wider" style="font-size:12px;font-weight:600">Voting Ballot Window</div>
+                                        <strong class="text-white" style="font-size:15.5px">@ev.VotingStartAt.ToString("dd MMM yyyy · hh:mm tt") – @ev.VotingEndAt.ToString("dd MMM yyyy · hh:mm tt")</strong>
+                                    </div>
+                                </div>
+                                @if (isVotingLive)
+                                {
+                                    <span class="badge active-b"><i class="fa-solid fa-circle-dot me-1 text-success"></i> Open</span>
+                                }
+                                else if (now < ev.VotingStartAt)
+                                {
+                                    <span class="badge upcoming-b">Upcoming</span>
+                                }
+                                else
+                                {
+                                    <span class="badge ended-b">Closed</span>
+                                }
+                            </div>
+
+                            <div class="timeline-card-item">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="fa-solid fa-chart-pie text-success" style="font-size:22px"></i>
+                                    <div>
+                                        <div class="text-muted text-uppercase tracking-wider" style="font-size:12px;font-weight:600">Results Publication Window</div>
+                                        <strong class="text-white" style="font-size:15.5px">
+                                            @(ev.ResultShowStartAt?.ToString("dd MMM yyyy · hh:mm tt") ?? "Not scheduled") – @(ev.ResultShowEndAt?.ToString("dd MMM yyyy · hh:mm tt") ?? "Not scheduled")
+                                        </strong>
+                                    </div>
+                                </div>
+                                <span class="badge published-b">Results</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 2: Users & Admins (People) -->
+        <section class="portal-pane" id="pane-people" style="display:none">
+            @if (isSuperAdmin)
+            {
+                <div class="row g-3 mb-4">
+                    <div class="col-xl-7">
+                        <div class="panel material h-100 p-4">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="eyebrow"><i class="fa-solid fa-user-plus me-1 text-info"></i> Assign Participant User</span>
+                            </div>
+                            <form asp-action="AssignEventUser" method="post" class="row g-3">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="EventId" value="@ev.Id" />
+                                <div class="col-md-6">
+                                    <label class="form-label">Select Participant</label>
+                                    <select name="UserId" class="select w-100" required>
+                                        <option value="">-- Choose User --</option>
+                                        @foreach (var user in Model.AvailableUsers)
+                                        {
+                                            <option value="@user.Id">@user.Name (@user.Email)</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Credential Expiry</label>
+                                    <input name="PasswordExpiresAt" type="datetime-local" class="input w-100" required />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Security Credential / Access Token</label>
+                                    <input name="EventPasswordHash" class="input w-100" maxlength="500" required placeholder="Enter event access credential or password token" />
+                                    <span class="text-muted" style="font-size:12.5px;display:block;margin-top:4px">Participant will authenticate with this event-specific token.</span>
+                                </div>
+                                <div class="col-12 pt-2">
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="fa-solid fa-user-check me-1"></i> Assign Participant
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-5">
+                        <div class="panel material h-100 p-4">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="eyebrow"><i class="fa-solid fa-user-shield me-1 text-purple"></i> Assign Contest Admin</span>
+                            </div>
+                            <form asp-action="AssignEventAdmin" method="post" class="row g-3">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="EventId" value="@ev.Id" />
+                                <div class="col-12">
+                                    <label class="form-label">Select Administrator</label>
+                                    <select name="AdminUserId" class="select w-100" required>
+                                        <option value="">-- Choose Admin --</option>
+                                        @foreach (var user in Model.AvailableAdmins)
+                                        {
+                                            <option value="@user.Id">@user.Name (@user.Email)</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-12 pt-4">
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="fa-solid fa-shield me-1"></i> Assign Administrator
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- People Filter & Table -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                <div>
+                    <h3 class="h5 text-white mb-1">Assigned Participants &amp; Administrators</h3>
+                    <p class="text-muted small mb-0">Users permitted to access ballots and administrative controls for this event.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <input id="peopleSearch" type="search" class="input" placeholder="Search by name or email..." style="width:240px;height:42px" />
+                    <select id="peopleRole" class="select" style="width:150px;height:42px">
+                        <option value="">All Roles</option>
+                        <option value="User">Participants</option>
+                        <option value="Admin">Admins</option>
+                        <option value="SuperAdmin">SuperAdmins</option>
+                    </select>
+                </div>
+            </div>
+
+            @if (Model.People.Count == 0)
+            {
+                <div class="panel material text-center p-5">
+                    <i class="fa-regular fa-user-xmark fa-2x mb-3 text-muted"></i>
+                    <h4 class="h5 mb-2">No users or admins assigned</h4>
+                    <p class="text-muted small mb-0">Assign participants or contest administrators using the forms above.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-shell material">
+                    <div class="table-scroll">
+                        <table id="peopleTable">
+                            <thead>
+                                <tr>
+                                    <th>Participant</th>
+                                    <th>Email</th>
+                                    <th>System Role</th>
+                                    <th>Assignment</th>
+                                    <th>Status</th>
+                                    <th class="text-end" style="min-width: 120px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var person in Model.People)
+                                {
+                                    var initial = !string.IsNullOrWhiteSpace(person.Name) ? person.Name.Substring(0, 1).ToUpperInvariant() : "U";
+                                    <tr data-role="@person.Role">
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="avatar" style="width:36px;height:36px;font-size:13px">@initial</span>
+                                                <strong class="text-white">@person.Name</strong>
+                                            </div>
+                                        </td>
+                                        <td><span class="text-muted">@person.Email</span></td>
+                                        <td><span class="badge" style="background:#1e293b;color:var(--brand2)">@person.Role</span></td>
+                                        <td>
+                                            @if (person.AssignmentType == "Admin")
+                                            {
+                                                <span class="badge" style="background:#4c1d95;color:#c084fc">Event Admin</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge" style="background:#1e293b;color:#94a3b8">Participant</span>
+                                            }
+                                        </td>
+                                        <td><span class="badge active-b">@(person.AccessStatus ?? "Active")</span></td>
+                                        <td>
+                                            <div class="row-actions justify-content-end">
+                                                @if (isSuperAdmin)
+                                                {
+                                                    if (person.AssignmentType == "Admin")
+                                                    {
+                                                        <form asp-action="RemoveEventAdmin" method="post"
+                                                              data-confirm-title="Remove administrator?"
+                                                              data-confirm-message="Revoke administrative access for @person.Name from this event?"
+                                                              data-confirm-button-text="Yes, revoke">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="EventId" value="@ev.Id" />
+                                                            <input type="hidden" name="AdminUserId" value="@person.UserId" />
+                                                            <button class="btn btn-sm btn-ghost text-danger" type="submit" title="Remove admin">
+                                                                <i class="fa-regular fa-trash-can"></i>
+                                                            </button>
+                                                        </form>
+                                                    }
+                                                    else
+                                                    {
+                                                        <form asp-action="RemoveEventUser" method="post"
+                                                              data-confirm-title="Remove participant?"
+                                                              data-confirm-message="Remove participant @person.Name from this event?"
+                                                              data-confirm-button-text="Yes, remove">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="EventId" value="@ev.Id" />
+                                                            <input type="hidden" name="UserId" value="@person.UserId" />
+                                                            <button class="btn btn-sm btn-ghost text-danger" type="submit" title="Remove participant">
+                                                                <i class="fa-regular fa-trash-can"></i>
+                                                            </button>
+                                                        </form>
+                                                    }
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </section>
+
+        <!-- Tab 3: Allocations (User Voting Limits) -->
+        <section class="portal-pane" id="pane-allocations" style="display:none">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h3 class="h5 text-white mb-1">Voting Allocations per User &amp; Project Track</h3>
+                    <p class="text-muted small mb-0">Configure ballot limits and monitor vote consumption quota.</p>
+                </div>
+            </div>
+
+            @if (Model.VotingAllocations.Count == 0)
+            {
+                <div class="panel material text-center p-5">
+                    <i class="fa-solid fa-sliders fa-2x mb-3 text-muted"></i>
+                    <h4 class="h5 mb-2">No voting allocations configured</h4>
+                    <p class="text-muted small mb-0">Assign event users and create project tracks to establish voting limits.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-shell material">
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Participant</th>
+                                    <th>Track Category</th>
+                                    <th>Quota &amp; Usage</th>
+                                    <th>Vote Limit</th>
+                                    <th class="text-end" style="min-width: 170px;">Update Quota</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var allocation in Model.VotingAllocations)
+                                {
+                                    var limit = allocation.VoteLimit > 0 ? allocation.VoteLimit : 1;
+                                    var percentUsed = Math.Min(100, (int)Math.Round((double)allocation.VoteUsed / limit * 100));
+                                    var isFull = allocation.VoteRemaining <= 0;
+
+                                    <tr>
+                                        <td><strong class="text-white" style="font-size:15px">@allocation.UserName</strong></td>
+                                        <td><span class="tag software" style="font-size:12.5px">@allocation.ProjectTypeName</span></td>
+                                        <td style="min-width:200px">
+                                            <div class="d-flex justify-content-between small mb-1">
+                                                <span class="text-muted" style="font-size:13.5px">@allocation.VoteUsed of @allocation.VoteLimit used</span>
+                                                <span class="badge @(isFull ? "ended-b" : "active-b")" style="font-size:12px">@allocation.VoteRemaining remaining</span>
+                                            </div>
+                                            <div class="vote-alloc-bar">
+                                                <div class="vote-alloc-fill @(isFull ? "full" : "")" style="width:@percentUsed%"></div>
+                                            </div>
+                                        </td>
+                                        <td><strong class="text-white" style="font-size:15.5px">@allocation.VoteLimit</strong></td>
+                                        <td>
+                                            <form asp-action="UpdateVotingAllocation" method="post" class="d-flex gap-2 justify-content-end align-items-center">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="eventId" value="@ev.Id" />
+                                                <input type="hidden" name="EventId" value="@ev.Id" />
+                                                <input type="hidden" name="UserEventId" value="@allocation.UserEventId" />
+                                                <input type="hidden" name="ProjectTypeId" value="@allocation.ProjectTypeId" />
+                                                <input name="VoteLimit" type="number" min="@allocation.VoteUsed" value="@allocation.VoteLimit" class="input text-center" style="width:5.5rem;height:38px;padding:0 6px;font-size:14px" />
+                                                <button class="btn btn-sm btn-primary py-1 px-3" type="submit" title="Update voting limit">Save</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </section>
+
+        <!-- Tab 4: Contest Projects (Create & Update Projects) -->
+        <section class="portal-pane" id="pane-projects" style="display:none">
+            <!-- Register Project Form -->
+            <div class="panel material mb-4 p-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="eyebrow"><i class="fa-solid fa-plus me-1 text-info"></i> Register Project Under This Event</span>
+                </div>
+                <form asp-action="CreateEventProject" method="post" class="row g-3">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="eventId" value="@ev.Id" />
+                    <div class="col-md-4">
+                        <label class="form-label">Project Title</label>
+                        <input name="name" class="input w-100" maxlength="200" required placeholder="e.g. NextGen Autonomous Core" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Category Track</label>
+                        <select name="projectTypeId" class="select w-100" required>
+                            <option value="">-- Choose Track --</option>
+                            @foreach (var type in Model.ProjectTypes)
+                            {
+                                <option value="@type.Id">@type.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Project Abstract / Summary</label>
+                        <input name="description" class="input w-100" maxlength="1000" placeholder="Brief project summary" />
+                    </div>
+                    <div class="col-12 pt-2">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fa-solid fa-plus me-1"></i> Register Project
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Competing Projects Toolbar & Table -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                <div>
+                    <h3 class="h5 text-white mb-1">Competing Projects</h3>
+                    <p class="text-muted small mb-0">Entries participating in this innovation challenge.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <input id="projectSearch" type="search" class="input" placeholder="Search projects..." style="width:230px;height:42px" />
+                    <select id="projectStatus" class="select" style="width:150px;height:42px">
+                        <option value="">All Statuses</option>
+                        <option value="@ev.Status">@ev.Status</option>
+                    </select>
+                </div>
+            </div>
+
+            @if (Model.Projects.Count == 0)
+            {
+                <div class="panel material text-center p-5">
+                    <i class="fa-regular fa-folder-open fa-2x mb-3 text-muted"></i>
+                    <h4 class="h5 mb-2">No projects registered yet</h4>
+                    <p class="text-muted small mb-0">Use the registration form above to submit projects for this event.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-shell material">
+                    <div class="table-scroll">
+                        <table id="projectsTable">
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Category Track</th>
+                                    <th>Status</th>
+                                    <th>Votes Received</th>
+                                    <th class="text-end" style="min-width: 150px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var project in Model.Projects)
+                                {
+                                    var typeName = project.ProjectTypeName ?? "Software";
+                                    var typeLower = typeName.ToLowerInvariant();
+                                    var isAi = typeLower.Contains("ai");
+                                    var isHard = typeLower.Contains("hard");
+                                    var isCyber = typeLower.Contains("cyber") || typeLower.Contains("sec");
+                                    var tagCls = isAi ? "ai" : (isHard ? "hardware" : (isCyber ? "cyber" : "software"));
+
+                                    <tr data-status="@project.Status">
+                                        <td>
+                                            <strong class="text-white" style="font-size:15.5px">@project.Name</strong>
+                                            @if (!string.IsNullOrWhiteSpace(project.Description))
+                                            {
+                                                <div class="text-muted small text-truncate" style="max-width:380px;font-size:13.5px">@project.Description</div>
+                                            }
+                                        </td>
+                                        <td><span class="tag @tagCls" style="font-size:12.5px">@typeName</span></td>
+                                        <td><span class="badge active-b" style="font-size:12.5px">@project.Status</span></td>
+                                        <td>
+                                            <span class="badge" style="background:#1e293b;color:#fff;font-size:13px">
+                                                <i class="fa-solid fa-check-to-slot me-1 text-info"></i>
+                                                <strong>@project.VoteCounts</strong> votes
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="row-actions justify-content-end align-items-center">
+                                                <button type="button" class="btn btn-sm btn-ghost edit-project-btn"
+                                                        data-id="@project.Id"
+                                                        data-name="@project.Name"
+                                                        data-type="@project.ProjectTypeName"
+                                                        data-desc="@project.Description"
+                                                        title="Edit project">
+                                                    <i class="fa-regular fa-pen-to-square text-info"></i>
+                                                </button>
+                                                <form asp-action="DeleteEventProject" method="post" class="d-inline"
+                                                      data-confirm-title="Delete project?"
+                                                      data-confirm-message="This will permanently delete '@project.Name'. Are you sure?"
+                                                      data-confirm-button-text="Yes, delete">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="eventId" value="@ev.Id" />
+                                                    <input type="hidden" name="id" value="@project.Id" />
+                                                    <button class="btn btn-sm btn-ghost text-danger" type="submit" title="Delete project">
+                                                        <i class="fa-regular fa-trash-can"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </section>
+    </div>
 </div>
 
-<dl class="row detail-list">
-    <dt class="col-sm-3">Name</dt><dd class="col-sm-9">@Model.Name</dd>
-    <dt class="col-sm-3">Code</dt><dd class="col-sm-9">@Model.Code</dd>
-    <dt class="col-sm-3">Description</dt><dd class="col-sm-9">@(Model.Description ?? "—")</dd>
-    <dt class="col-sm-3">Event starts</dt><dd class="col-sm-9">@Model.EventStartAt.ToString("f")</dd>
-    <dt class="col-sm-3">Event ends</dt><dd class="col-sm-9">@Model.EventEndAt.ToString("f")</dd>
-    <dt class="col-sm-3">Voting starts</dt><dd class="col-sm-9">@Model.VotingStartAt.ToString("f")</dd>
-    <dt class="col-sm-3">Voting ends</dt><dd class="col-sm-9">@Model.VotingEndAt.ToString("f")</dd>
-    <dt class="col-sm-3">Results shown from</dt><dd class="col-sm-9">@(Model.ResultShowStartAt?.ToString("f") ?? "—")</dd>
-    <dt class="col-sm-3">Results shown until</dt><dd class="col-sm-9">@(Model.ResultShowEndAt?.ToString("f") ?? "—")</dd>
-</dl>
-
-<div class="form-actions">
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
-    <a asp-action="Index" class="btn btn-outline-secondary">Back to list</a>
+<!-- Edit Project Modal (Update Project) -->
+<div class="modal fade" id="editProjectModal" tabindex="-1" aria-labelledby="editProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content material">
+            <div class="modal-header">
+                <h5 class="modal-title text-white" id="editProjectModalLabel">
+                    <i class="fa-regular fa-pen-to-square me-2 text-info"></i> Edit Contest Project
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="EditEventProject" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="eventId" value="@ev.Id" />
+                <input type="hidden" name="id" id="editProjectId" />
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label">Project Title</label>
+                        <input type="text" name="name" id="editProjectName" class="input w-100" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category Track</label>
+                        <select name="projectTypeId" id="editProjectTypeId" class="select w-100" required>
+                            @foreach (var type in Model.ProjectTypes)
+                            {
+                                <option value="@type.Id">@type.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description / Summary</label>
+                        <textarea name="description" id="editProjectDesc" class="form-control input w-100" rows="3" style="min-height:90px"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-check me-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        function setPortalTab(tabKey) {
+            if (!tabKey) tabKey = 'overview';
+            tabKey = tabKey.replace('#', '').replace('pane-', '').replace('btn-', '');
+
+            // 1. Update buttons
+            document.querySelectorAll('.portal-nav-btn').forEach(btn => {
+                const btnTab = btn.getAttribute('data-portal-tab');
+                const isActive = (btnTab === tabKey);
+                btn.classList.toggle('active', isActive);
+                btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+
+            // 2. Update panes
+            const validTabs = ['overview', 'people', 'allocations', 'projects'];
+            validTabs.forEach(t => {
+                const pane = document.getElementById('pane-' + t);
+                if (pane) {
+                    if (t === tabKey) {
+                        pane.style.display = 'block';
+                        pane.classList.add('active');
+                    } else {
+                        pane.style.display = 'none';
+                        pane.classList.remove('active');
+                    }
+                }
+            });
+
+            // 3. Update hash
+            try {
+                history.replaceState(null, null, '#' + tabKey);
+            } catch (e) {}
+        }
+        window.setPortalTab = setPortalTab;
+
+        function initPortal() {
+            // Click listener for portal nav buttons
+            document.querySelectorAll('.portal-nav-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const tabKey = this.getAttribute('data-portal-tab');
+                    setPortalTab(tabKey);
+                });
+            });
+
+            // Initial load from URL hash
+            const currentHash = window.location.hash ? window.location.hash.substring(1) : 'overview';
+            setPortalTab(currentHash);
+
+            // Edit Project Modal pre-fill
+            document.querySelectorAll('.edit-project-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = this.getAttribute('data-id');
+                    const name = this.getAttribute('data-name');
+                    const desc = this.getAttribute('data-desc');
+                    const typeName = this.getAttribute('data-type');
+
+                    document.getElementById('editProjectId').value = id;
+                    document.getElementById('editProjectName').value = name;
+                    document.getElementById('editProjectDesc').value = desc || '';
+
+                    const typeSelect = document.getElementById('editProjectTypeId');
+                    for (let i = 0; i < typeSelect.options.length; i++) {
+                        if (typeSelect.options[i].text.trim().toLowerCase() === (typeName || '').trim().toLowerCase()) {
+                            typeSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (window.bootstrap && bootstrap.Modal) {
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('editProjectModal')).show();
+                    }
+                });
+            });
+
+            // Generic Table Search & Filter Helper
+            const filterRows = (inputId, tableId, filterId, extraFilter) => {
+                const input = document.getElementById(inputId), table = document.getElementById(tableId);
+                if (!input || !table) return;
+                const apply = () => table.querySelectorAll('tbody tr').forEach(row => {
+                    const matchesText = row.textContent.toLowerCase().includes(input.value.toLowerCase().trim());
+                    row.hidden = !(matchesText && (!extraFilter || extraFilter(row)));
+                });
+                input.addEventListener('input', apply);
+                if (filterId) document.getElementById(filterId)?.addEventListener('change', apply);
+            };
+
+            filterRows('peopleSearch', 'peopleTable', 'peopleRole', row => {
+                const role = document.getElementById('peopleRole').value;
+                return !role || row.dataset.role === role;
+            });
+
+            filterRows('projectSearch', 'projectsTable', 'projectStatus', row => {
+                const status = document.getElementById('projectStatus').value;
+                return !status || row.dataset.status === status;
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initPortal);
+        } else {
+            initPortal();
+        }
+    </script>
+}

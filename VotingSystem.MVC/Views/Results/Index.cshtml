@@ -1,7 +1,88 @@
 @model PageResult<ResultResponseModel>
-@{ ViewData["Title"] = "Results"; }
-<div class="page-toolbar mb-4"><div><p class="eyebrow mb-1">Published outcomes</p><h1 class="h2 mb-1">Election results</h1><p class="text-muted mb-0">Review verified and published project outcomes.</p></div>@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin")) { <a asp-action="Create" class="btn btn-primary"><svg class="app-icon"><use href="#icon-plus" /></svg>Create result</a> }</div>
-<partial name="_PageAlerts" />
-@if (Model.Count == 0) { <div class="alert alert-info">No results have been published yet.</div> }
-else { <div class="table-responsive mobile-table-shell"><table class="table table-hover align-middle mobile-card-table"><thead><tr><th>Event ID</th><th>Project ID</th><th>Status</th><th>Version</th><th>Published</th><th class="text-end">Action</th></tr></thead><tbody>@foreach (var item in Model) { <tr><td data-label="Event ID">@item.EventId</td><td data-label="Project ID">@item.ProjectId</td><td data-label="Status"><span class="badge bg-secondary">@item.Status.ToString().Replace('_', ' ')</span></td><td data-label="Version">@item.Version</td><td data-label="Published">@(item.PublishedAt?.ToString("g") ?? "Not published")</td><td data-label="Action" class="table-actions text-end">@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin")) { <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a> }</td></tr> }</tbody></table></div> }
-<partial name="_Pagination" model="Model" />
+@{
+    ViewData["Title"] = "Results";
+    var canManage = User.IsInRole("SuperAdmin") || User.IsInRole("Admin");
+}
+
+<div class="view is-active">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Ballot / Results</span>
+            <h1>Audited contest outcomes</h1>
+            <p>Official verified tally summaries and leaderboard release records.</p>
+        </div>
+        @if (canManage)
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i>
+                <span>Publish result</span>
+            </a>
+        }
+    </div>
+
+    @if (Model == null || Model.Items.Count == 0)
+    {
+        <div class="panel material text-center p-5">
+            <i class="fa-solid fa-trophy fa-2x mb-3 text-muted"></i>
+            <h3 class="h5 mb-2">No published results</h3>
+            <p class="text-muted small">Contest tally calculations will be displayed here once finalized and published.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-shell material">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Event ID</th>
+                            <th>Winning Project</th>
+                            <th>Status</th>
+                            <th>Version</th>
+                            <th>Published date</th>
+                            @if (canManage)
+                            {
+                                <th class="text-end">Actions</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            var statusStr = item.Status.ToString().Replace('_', ' ');
+                            <tr>
+                                <td>
+                                    <span class="badge" style="font-family:monospace">Event #@item.EventId</span>
+                                </td>
+                                <td>
+                                    <strong>Project #@item.ProjectId</strong>
+                                </td>
+                                <td>
+                                    <span class="badge published-b">@statusStr</span>
+                                </td>
+                                <td>
+                                    <span class="badge" style="background:rgba(255,255,255,0.06)">v@(item.Version)</span>
+                                </td>
+                                <td>
+                                    @(item.PublishedAt?.ToString("dd MMM yyyy · hh:mm tt") ?? "Pending publication")
+                                </td>
+                                @if (canManage)
+                                {
+                                    <td>
+                                        <div class="row-actions justify-content-end">
+                                            <a asp-action="Edit" asp-route-id="@item.Id" title="Edit result" aria-label="Edit">
+                                                <i class="fa-regular fa-pen-to-square"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <partial name="_Pagination" model="Model" />
+        </div>
+    }
+</div>

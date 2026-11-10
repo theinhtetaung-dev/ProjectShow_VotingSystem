@@ -1,0 +1,20 @@
+@model dynamic
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label for="EventId" class="form-label">Event ID</label>
+        <input id="EventId" name="EventId" value="@Model.EventId" type="number" min="1" class="input" placeholder="e.g. 1" required />
+    </div>
+    <div class="col-md-6">
+        <label for="ProjectTypeId" class="form-label">Project Type ID (Track)</label>
+        <input id="ProjectTypeId" name="ProjectTypeId" value="@Model.ProjectTypeId" type="number" min="1" class="input" placeholder="e.g. 2" required />
+    </div>
+    <div class="col-12">
+        <label for="Name" class="form-label">Project name</label>
+        <input id="Name" name="Name" value="@Model.Name" class="input" placeholder="e.g. NeuralCrop AI" required />
+    </div>
+    <div class="col-12">
+        <label for="Description" class="form-label">Project description &amp; impact</label>
+        <textarea id="Description" name="Description" class="input" rows="4" placeholder="Detail the innovation, problem addressed, and architecture.">@Model.Description</textarea>
+    </div>
+</div>

@@ -5,66 +5,169 @@
     var selectedStatus = ViewBag.SelectedStatus as string;
 }
 
-<div class="page-toolbar mb-3">
-    <div>
-        <p class="eyebrow mb-1">Management</p>
-        <h1 class="h2 mb-0">Projects</h1>
+<div class="view is-active">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Workspace / Projects</span>
+            <h1>Project field</h1>
+            <p>Review entries, categories and live voting performance.</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i>
+            <span>Create project</span>
+        </a>
     </div>
-    <a asp-action="Create" class="btn btn-primary"><svg class="app-icon"><use href="#icon-plus" /></svg>Create project</a>
-</div>
 
-<partial name="_PageAlerts" />
-
-<form asp-action="Index" method="get" class="row g-2 align-items-end mb-3">
-    <div class="col-12 col-sm-6 col-lg-4">
-        <label for="status" class="form-label">Status</label>
-        <select id="status" name="status" class="form-select" onchange="this.form.submit()">
-            <option value="">All Statuses</option>
-            @foreach (var status in statuses)
-            {
-                <option value="@status" selected="@(status == selectedStatus)">@status</option>
-            }
-        </select>
-    </div>
-    <input type="hidden" name="pageSize" value="@Model.PageSize" />
-    <noscript><div class="col-auto"><button type="submit" class="btn btn-outline-primary">Apply</button></div></noscript>
-</form>
-
-@if (Model.Items.Count == 0)
-{
-    <div class="alert alert-info">No projects found.</div>
-}
-else
-{
-    <div class="table-responsive mobile-table-shell">
-        <table class="table table-hover align-middle mobile-card-table">
-            <thead>
-                <tr>
-                    <th>Project</th>
-                    <th>Event Code</th>
-                    <th>Project Type</th>
-                    <th>Status</th>
-                    <th>Votes</th>
-                    <th class="text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.Items)
+    <!-- Filters & Segmented Switcher -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <form asp-action="Index" method="get" class="filters m-0">
+            <select id="status" name="status" class="select" onchange="this.form.submit()">
+                <option value="">All statuses</option>
+                @foreach (var status in statuses)
                 {
-                    <tr>
-                        <td data-label="Project"><strong>@item.Name</strong><small class="table-subtitle">@(item.Description ?? "No description")</small></td>
-                        <td data-label="Event Code">@(string.IsNullOrWhiteSpace(item.EventCode) ? "—" : item.EventCode)</td>
-                        <td data-label="Project Type">@(string.IsNullOrWhiteSpace(item.ProjectTypeName) ? "—" : item.ProjectTypeName)</td>
-                        <td data-label="Status"><span class="badge bg-secondary">@(string.IsNullOrWhiteSpace(item.Status) ? "Unknown" : item.Status)</span></td>
-                        <td data-label="Votes">@item.VoteCounts</td>
-                        <td data-label="Actions" class="table-actions text-end">
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
-                        </td>
-                    </tr>
+                    <option value="@status" selected="@(status == selectedStatus)">@status</option>
                 }
-            </tbody>
-        </table>
+            </select>
+            <input type="hidden" name="pageSize" value="@Model.PageSize" />
+            <noscript><button type="submit" class="btn btn-outline-primary btn-sm">Filter</button></noscript>
+        </form>
+
+        <div class="segmented">
+            <button type="button" class="active" id="cardsBtn">
+                <i class="fa-solid fa-border-all"></i> Cards
+            </button>
+            <button type="button" id="tableBtn">
+                <i class="fa-solid fa-list"></i> Table
+            </button>
+        </div>
     </div>
-    <partial name="_Pagination" model="Model" />
-}
+
+    @if (Model == null || Model.Items.Count == 0)
+    {
+        <div class="panel material text-center p-5">
+            <i class="fa-regular fa-folder-open fa-2x mb-3 text-muted"></i>
+            <h3 class="h5 mb-2">No projects found</h3>
+            <p class="text-muted small mb-4">No projects match your current filter criteria.</p>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Submit a project
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Cards Grid View -->
+        <div class="project-grid" id="projectCards">
+            @foreach (var item in Model.Items)
+            {
+                var typeName = item.ProjectTypeName ?? "Software";
+                var typeLower = typeName.ToLowerInvariant();
+                var isAi = typeLower.Contains("ai");
+                var isHard = typeLower.Contains("hard");
+                var isCyber = typeLower.Contains("cyber") || typeLower.Contains("sec");
+                
+                var tagCls = isAi ? "ai" : (isHard ? "hardware" : (isCyber ? "cyber" : "software"));
+                var iconCls = isAi ? "fa-brain" : (isHard ? "fa-microchip" : (isCyber ? "fa-shield-halved" : "fa-code"));
+                var tagColor = isAi ? "var(--purple)" : (isHard ? "var(--orange)" : (isCyber ? "var(--cyan)" : "var(--blue)"));
+
+                <article class="project material">
+                    <div class="project-top">
+                        <span class="project-icon" style="color:@tagColor">
+                            <i class="fa-solid @iconCls"></i>
+                        </span>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="tag @tagCls">@typeName</span>
+                            @if (!string.IsNullOrWhiteSpace(item.Status))
+                            {
+                                <span class="badge" style="background:rgba(255,255,255,0.06);font-size:8px">@item.Status</span>
+                            }
+                        </div>
+                    </div>
+
+                    <h3>@item.Name</h3>
+                    <p>@(string.IsNullOrWhiteSpace(item.Description) ? "Innovation entry registered for competition." : item.Description)</p>
+
+                    <div class="project-meta">
+                        <span>@(string.IsNullOrWhiteSpace(item.EventCode) ? "EVENT #" + item.EventId : item.EventCode)</span>
+                        <span class="vote-count">
+                            <i class="fa-solid fa-check-to-slot"></i> @item.VoteCounts votes
+                        </span>
+                    </div>
+
+                    <div class="project-actions">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn">
+                            <i class="fa-regular fa-pen-to-square"></i> Edit
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-ghost text-danger">
+                            <i class="fa-regular fa-trash-can"></i> Delete
+                        </a>
+                    </div>
+                </article>
+            }
+        </div>
+
+        <!-- Table View -->
+        <div class="table-shell material" id="projectTable" style="display:none">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Project</th>
+                            <th>Category</th>
+                            <th>Event</th>
+                            <th>Votes</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            var typeName = item.ProjectTypeName ?? "Software";
+                            var typeLower = typeName.ToLowerInvariant();
+                            var isAi = typeLower.Contains("ai");
+                            var isHard = typeLower.Contains("hard");
+                            var isCyber = typeLower.Contains("cyber") || typeLower.Contains("sec");
+                            var tagCls = isAi ? "ai" : (isHard ? "hardware" : (isCyber ? "cyber" : "software"));
+
+                            <tr>
+                                <td>
+                                    <strong>@item.Name</strong>
+                                    @if (!string.IsNullOrWhiteSpace(item.Description))
+                                    {
+                                        <div class="text-muted small text-truncate" style="max-width:320px">@item.Description</div>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="tag @tagCls">@typeName</span>
+                                </td>
+                                <td>
+                                    <span class="badge" style="font-family:monospace">@(string.IsNullOrWhiteSpace(item.EventCode) ? "#" + item.EventId : item.EventCode)</span>
+                                </td>
+                                <td>
+                                    <strong>@item.VoteCounts</strong>
+                                </td>
+                                <td>
+                                    <span class="badge active-b">@(item.Status ?? "Active")</span>
+                                </td>
+                                <td>
+                                    <div class="row-actions justify-content-end">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" title="Edit project">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" title="Delete project">
+                                            <i class="fa-regular fa-trash-can text-danger"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <partial name="_Pagination" model="Model" />
+        </div>
+    }
+</div>

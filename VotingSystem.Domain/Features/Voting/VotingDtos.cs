@@ -2,6 +2,7 @@ namespace VotingSystem.Domain.Features.Voting;
 
 public class VotingLimitUpdateRequestModel
 {
+    public long? EventId { get; set; }
     public long UserEventId { get; set; }
     public int ProjectTypeId { get; set; }
     public int VoteLimit { get; set; }

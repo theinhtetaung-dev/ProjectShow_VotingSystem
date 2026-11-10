@@ -2,12 +2,19 @@
     ViewData["Title"] = "Access denied";
 }
 
-<div class="auth-shell">
-    <div class="auth-card text-center">
-        <span class="auth-icon mx-auto mb-3"><svg class="app-icon"><use href="#icon-shield" /></svg></span>
-        <p class="eyebrow mb-2">Authorization</p>
-        <h1 class="h3">Access denied</h1>
-        <p class="text-muted">Your account does not have permission to open this page.</p>
-        <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-2">Return to dashboard</a>
+<div class="d-flex justify-content-center align-items-center" style="min-height:70vh">
+    <div class="panel material text-center p-5" style="max-width:480px;border-color:rgba(251,113,133,0.3)">
+        <div class="stat-icon mx-auto mb-3" style="width:54px;height:54px;font-size:22px;background:rgba(251,113,133,0.12);color:var(--danger)">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <span class="eyebrow text-danger">Security boundary</span>
+        <h1 class="h3 my-2 text-white">Access Denied</h1>
+        <p class="text-sub small mb-4">Your operator clearance does not allow access to this partition. Contact your system SuperAdministrator for elevated permissions.</p>
+        <div class="d-flex justify-content-center gap-2">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                <i class="fa-solid fa-house"></i>
+                <span>Return to command center</span>
+            </a>
+        </div>
     </div>
 </div>

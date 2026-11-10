@@ -3,60 +3,188 @@
     ViewData["Title"] = "Events";
 }
 
-<div class="page-toolbar mb-3">
-    <h1 class="h2 mb-0">Events</h1>
-    <a asp-action="Create" class="btn btn-primary"><svg class="app-icon"><use href="#icon-plus" /></svg><span>Create event</span></a>
-</div>
-
-@if (TempData["SuccessMessage"] is string success)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @success
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<div class="view is-active">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Workspace / Events</span>
+            <h1>Event registry</h1>
+            <p>Create, schedule and monitor innovation contests.</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i>
+            <span>Create event</span>
+        </a>
     </div>
-}
-@if (TempData["ErrorMessage"] is string error)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @error
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
 
-@if (Model.Items.Count == 0)
-{
-    <div class="alert alert-info">No events found.</div>
-}
-else
-{
-    <div class="table-responsive mobile-table-shell">
-        <table class="table table-striped table-hover align-middle mobile-card-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Code</th>
-                    <th>Event dates</th>
-                    <th>Status</th>
-                    <th class="text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
+    @if (Model == null || Model.Items.Count == 0)
+    {
+        <div class="panel material text-center p-5">
+            <i class="fa-regular fa-calendar-xmark fa-2x mb-3 text-muted"></i>
+            <h3 class="h5 mb-2">No events found</h3>
+            <p class="text-muted small mb-4">Start by creating your first contest event to schedule voting and track projects.</p>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Create first event
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Toolbar & View Switcher -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted" style="font-size:14.5px">Showing <strong class="text-white">@Model.Items.Count</strong> of <strong class="text-white">@Model.TotalCount</strong> events</span>
+            </div>
+            <div class="segmented">
+                <button type="button" class="active" id="eventsTableBtn" title="Table View">
+                    <i class="fa-solid fa-list"></i> Table
+                </button>
+                <button type="button" id="eventsCardsBtn" title="Cards View">
+                    <i class="fa-solid fa-border-all"></i> Cards
+                </button>
+            </div>
+        </div>
+
+        <!-- Cards View -->
+        <div class="event-grid mb-4" id="eventsCards" style="display:none">
             @foreach (var item in Model.Items)
             {
-                <tr>
-                    <td data-label="Name"><strong class="mobile-primary">@item.Name</strong></td>
-                    <td data-label="Code">@item.Code</td>
-                    <td data-label="Event dates"><span class="date-range"><span>@item.EventStartAt.ToString("g")</span><span aria-hidden="true">–</span><span>@item.EventEndAt.ToString("g")</span></span></td>
-                    <td data-label="Status"><span class="badge bg-secondary">@item.Status</span></td>
-                    <td data-label="Actions" class="table-actions text-end text-nowrap">
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" aria-label="View @item.Name"><svg class="app-icon"><use href="#icon-eye" /></svg><span>Details</span></a>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" aria-label="Edit @item.Name"><svg class="app-icon"><use href="#icon-edit" /></svg><span>Edit</span></a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" aria-label="Delete @item.Name"><svg class="app-icon"><use href="#icon-trash" /></svg><span>Delete</span></a>
-                    </td>
-                </tr>
+                var statusLower = item.Status?.ToLowerInvariant() ?? "";
+                var badgeCls = statusLower switch {
+                    "active" => "active-b",
+                    "upcoming" => "upcoming-b",
+                    "published" => "published-b",
+                    _ => "ended-b"
+                };
+                var isLive = statusLower == "active";
+
+                <article class="event-card material">
+                    <div class="event-card-top">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge @badgeCls" style="font-size:12.5px">
+                                @if (isLive)
+                                {
+                                    <i class="fa-solid fa-circle-dot me-1 text-success"></i>
+                                }
+                                @item.Status
+                            </span>
+                            <span class="badge badge-code" title="Contest Code" style="font-size:12.5px">@item.Code</span>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-icon btn-ghost btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="More options">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" asp-action="Details" asp-route-id="@item.Id" style="font-size:14px">
+                                        <i class="fa-solid fa-sliders me-2 text-info"></i> Manage Portal
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-action="Edit" asp-route-id="@item.Id" style="font-size:14px">
+                                        <i class="fa-regular fa-pen-to-square me-2 text-muted"></i> Edit Event
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" asp-action="Delete" asp-route-id="@item.Id" style="font-size:14px">
+                                        <i class="fa-regular fa-trash-can me-2"></i> Delete Event
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h3 class="event-card-title">
+                        <a asp-action="Details" asp-route-id="@item.Id" style="font-size:20px">@item.Name</a>
+                    </h3>
+
+                    <div class="event-card-schedule">
+                        <div class="schedule-item">
+                            <i class="fa-regular fa-calendar-days text-info"></i>
+                            <div>
+                                <span class="label" style="font-size:11.5px">Competition Window</span>
+                                <strong style="font-size:14px">@item.EventStartAt.ToString("dd MMM yyyy") — @item.EventEndAt.ToString("dd MMM yyyy")</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-card-footer">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-portal flex-grow-1" title="Open Management Portal" style="font-size:14.5px;min-height:42px">
+                            <i class="fa-solid fa-sliders me-1"></i>
+                            <span>Manage Portal</span>
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-icon btn-ghost" title="Edit event" aria-label="Edit">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-icon btn-ghost text-danger" title="Delete event" aria-label="Delete">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </a>
+                    </div>
+                </article>
             }
-            </tbody>
-        </table>
-    </div>
-    <partial name="_Pagination" model="Model" />
-}
+        </div>
+
+        <!-- Table View -->
+        <div class="table-shell material" id="eventsTable">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Event</th>
+                            <th>Code</th>
+                            <th>Competition window</th>
+                            <th>Status</th>
+                            <th class="text-end" style="min-width: 190px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            var statusLower = item.Status?.ToLowerInvariant() ?? "";
+                            var badgeCls = statusLower switch {
+                                "active" => "active-b",
+                                "upcoming" => "upcoming-b",
+                                "published" => "published-b",
+                                _ => "ended-b"
+                            };
+
+                            <tr>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="fw-bold text-white text-decoration-none" style="font-size:15.5px">
+                                        @item.Name
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge badge-code" style="font-size:13px">@item.Code</span>
+                                </td>
+                                <td>
+                                    <i class="fa-regular fa-calendar me-1 text-muted"></i>
+                                    <span style="font-size:14.5px">@item.EventStartAt.ToString("dd MMM yyyy") — @item.EventEndAt.ToString("dd MMM yyyy")</span>
+                                </td>
+                                <td>
+                                    <span class="badge @badgeCls" style="font-size:13px">@item.Status</span>
+                                </td>
+                                <td>
+                                    <div class="row-actions justify-content-end align-items-center">
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-portal d-inline-flex align-items-center gap-1" title="Manage Event Portal" aria-label="Portal" style="font-size:13px;padding:0 12px">
+                                            <i class="fa-solid fa-sliders"></i>
+                                            <span>Manage Portal</span>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.Id" title="Edit event" aria-label="Edit" style="font-size:15px">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" title="Delete event" aria-label="Delete" style="font-size:15px">
+                                            <i class="fa-regular fa-trash-can text-danger"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <partial name="_Pagination" model="Model" />
+        </div>
+    }
+</div>

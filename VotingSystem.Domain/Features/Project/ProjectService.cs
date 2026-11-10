@@ -182,6 +182,11 @@ public class ProjectService : IProjectService
                 return Result<ProjectResponseModel>.NotFound("Item Not Found!");
             }
 
+            if (request.ExpectedEventId.HasValue && project.EventId != request.ExpectedEventId.Value)
+            {
+                return Result<ProjectResponseModel>.ValidationError("Project does not belong to the selected event.");
+            }
+
             if (request.Name != null && !request.Name.IsValidRequiredString(200))
             {
                 return Result<ProjectResponseModel>.ValidationError("Name is required and must not exceed 200 characters.");
@@ -260,7 +265,7 @@ public class ProjectService : IProjectService
     #endregion
 
     #region Delete Project
-    public async Task<Result<ProjectResponseModel>> DeleteProject(long id)
+    public async Task<Result<ProjectResponseModel>> DeleteProject(long id, long? eventId = null)
     {
         try
         {
@@ -269,6 +274,11 @@ public class ProjectService : IProjectService
             if (project == null)
             {
                 return Result<ProjectResponseModel>.NotFound("Item Not Found!");
+            }
+
+            if (eventId.HasValue && project.EventId != eventId.Value)
+            {
+                return Result<ProjectResponseModel>.ValidationError("Project does not belong to the selected event.");
             }
 
             project.DeleteFlag = true;
