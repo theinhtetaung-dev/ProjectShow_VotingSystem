@@ -1,0 +1,43 @@
+@model EmailAccountFormModel
+
+<div class="row g-3">
+    <div class="col-md-7">
+        <label asp-for="EmailAddress" class="form-label">Gmail address</label>
+        <div class="input-wrap">
+            <i class="fa-regular fa-envelope"></i>
+            <input asp-for="EmailAddress" type="email" class="input" maxlength="255" placeholder="e.g. votingsystem.sender1@gmail.com" required autocomplete="email" />
+        </div>
+        <span asp-validation-for="EmailAddress" class="text-danger small d-block mt-1"></span>
+    </div>
+
+    <div class="col-md-5">
+        <label asp-for="DisplayName" class="form-label">Sender display name <span class="text-muted fw-normal">(optional)</span></label>
+        <div class="input-wrap">
+            <i class="fa-regular fa-id-badge"></i>
+            <input asp-for="DisplayName" class="input" maxlength="150" placeholder="e.g. NEXUS Vote Mailer #1" />
+        </div>
+        <span asp-validation-for="DisplayName" class="text-danger small d-block mt-1"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="PriorityOrder" class="form-label">Round Robin order / priority</label>
+        <div class="input-wrap">
+            <i class="fa-solid fa-arrow-down-1-9"></i>
+            <input asp-for="PriorityOrder" type="number" min="1" max="100000" class="input" required />
+        </div>
+        <span class="text-muted small d-block mt-1">Lower numbers run earlier in rotation (1, 2, 3...).</span>
+        <span asp-validation-for="PriorityOrder" class="text-danger small d-block mt-1"></span>
+    </div>
+
+    <div class="col-md-8 d-flex align-items-center">
+        <div class="p-3 rounded-3 w-100" style="background:rgba(255,255,255,0.03);border:1px solid var(--edge)">
+            <div class="form-check form-switch m-0 d-flex align-items-center gap-3">
+                <input asp-for="IsActive" class="form-check-input m-0" type="checkbox" role="switch" style="width:2.6rem;height:1.35rem;cursor:pointer" />
+                <div>
+                    <label asp-for="IsActive" class="form-check-label fw-semibold text-white d-block" style="cursor:pointer">Active in Round Robin pool</label>
+                    <small class="text-muted">Only active accounts can be selected when sending emails.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

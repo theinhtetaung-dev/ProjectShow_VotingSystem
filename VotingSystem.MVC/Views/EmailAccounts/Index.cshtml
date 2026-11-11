@@ -1,0 +1,273 @@
+@model PageResult<EmailAccountResponseModel>
+@{
+    ViewData["Title"] = "Email Accounts";
+    var selectedStatus = ViewBag.SelectedStatus as string;
+    var items = Model?.Items ?? [];
+    var activeOnPage = items.Count(x => x.IsActive);
+    var disabledOnPage = items.Count(x => !x.IsActive);
+    var sentOnPage = items.Sum(x => x.TotalEmailsSent);
+}
+
+<div class="view is-active">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Infrastructure / Email Pool</span>
+            <h1>Email accounts</h1>
+            <p>Configure Gmail sender accounts, priority order, and Round Robin delivery rotation.</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add email account</span>
+        </a>
+    </div>
+
+    @if (items.Count > 0)
+    {
+        <div class="portal-kpi-grid">
+            <div class="portal-kpi-card material">
+                <div class="kpi-icon blue">
+                    <i class="fa-regular fa-envelope"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-val">@Model!.TotalCount</span>
+                    <span class="kpi-lbl">Configured Accounts</span>
+                </div>
+            </div>
+
+            <div class="portal-kpi-card material">
+                <div class="kpi-icon green">
+                    <i class="fa-solid fa-rotate"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-val">@activeOnPage</span>
+                    <span class="kpi-lbl">Active (This Page)</span>
+                </div>
+            </div>
+
+            <div class="portal-kpi-card material">
+                <div class="kpi-icon amber">
+                    <i class="fa-solid fa-pause"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-val">@disabledOnPage</span>
+                    <span class="kpi-lbl">Disabled (This Page)</span>
+                </div>
+            </div>
+
+            <div class="portal-kpi-card material">
+                <div class="kpi-icon purple">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </div>
+                <div class="kpi-content">
+                    <span class="kpi-val">@sentOnPage.ToString("N0")</span>
+                    <span class="kpi-lbl">Emails Sent (This Page)</span>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Filter & Segmented View Switcher -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <form asp-action="Index" method="get" class="filters m-0">
+            <select id="status" name="status" class="select" onchange="this.form.submit()" aria-label="Filter by account status">
+                <option value="">All statuses</option>
+                <option value="active" selected="@(string.Equals(selectedStatus, "active", StringComparison.OrdinalIgnoreCase))">Active only</option>
+                <option value="disabled" selected="@(string.Equals(selectedStatus, "disabled", StringComparison.OrdinalIgnoreCase))">Disabled only</option>
+            </select>
+            <input type="hidden" name="pageSize" value="@(Model?.PageSize ?? 10)" />
+            <noscript><button type="submit" class="btn btn-outline-primary btn-sm">Filter</button></noscript>
+        </form>
+
+        @if (items.Count > 0)
+        {
+            <div class="segmented">
+                <button type="button" class="active" id="emailAccountsTableBtn" title="Table View">
+                    <i class="fa-solid fa-list"></i> Table
+                </button>
+                <button type="button" id="emailAccountsCardsBtn" title="Cards View">
+                    <i class="fa-solid fa-border-all"></i> Cards
+                </button>
+            </div>
+        }
+    </div>
+
+    @if (items.Count == 0)
+    {
+        <div class="panel material text-center p-5">
+            <i class="fa-regular fa-envelope-open fa-2x mb-3 text-muted"></i>
+            <h3 class="h5 mb-2">No email accounts configured</h3>
+            <p class="text-muted small mb-4">Add one or more Gmail sender accounts to enable Round Robin email dispatch.</p>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Add first email account
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Cards View -->
+        <div class="user-grid mb-4" id="emailAccountsCards" style="display:none">
+            @foreach (var item in items)
+            {
+                <article class="user-card material">
+                    <div class="user-card-header">
+                        <span class="badge upcoming-b">Order #@item.PriorityOrder</span>
+                        @if (item.IsActive)
+                        {
+                            <span class="badge active-b">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge ended-b">Disabled</span>
+                        }
+                    </div>
+
+                    <div class="user-card-body">
+                        <strong class="text-truncate" title="@item.EmailAddress">@item.EmailAddress</strong>
+                        <div class="text-muted small mb-2">
+                            @(string.IsNullOrWhiteSpace(item.DisplayName) ? "Default sender name" : item.DisplayName)
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted pt-2" style="border-top:1px solid var(--edge)">
+                            <span><i class="fa-solid fa-paper-plane me-1 text-info"></i> @item.TotalEmailsSent sent</span>
+                            <span>@(item.LastUsedAt.HasValue ? item.LastUsedAt.Value.ToLocalTime().ToString("dd MMM yyyy") : "Never used")</span>
+                        </div>
+                    </div>
+
+                    <div class="user-card-footer">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-ghost" title="View details">
+                            <i class="fa-regular fa-eye"></i> Details
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-ghost" title="Edit account">
+                            <i class="fa-regular fa-pen-to-square"></i> Edit
+                        </a>
+                        <form asp-action="ToggleStatus" method="post" class="d-inline"
+                              data-confirm-title="@(item.IsActive ? "Disable account?" : "Enable account?")"
+                              data-confirm-message="@(item.IsActive ? $"Disable {item.EmailAddress}? Round Robin will skip it until re-enabled." : $"Enable {item.EmailAddress}? It will rejoin Round Robin rotation.")"
+                              data-confirm-button-text="@(item.IsActive ? "Yes, disable" : "Yes, enable")"
+                              data-confirm-color="@(item.IsActive ? "#d97706" : "#0284c7")"
+                              data-loading-submit="">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <input type="hidden" name="isActive" value="@(!item.IsActive ? "true" : "false")" />
+                            <button type="submit" class="btn btn-sm btn-ghost" title="@(item.IsActive ? "Disable account" : "Enable account")" data-submit-button>
+                                <i class="fa-solid @(item.IsActive ? "fa-pause text-warning" : "fa-play text-success")"></i>
+                            </button>
+                        </form>
+                        <form asp-action="Delete" method="post" class="d-inline"
+                              data-confirm-title="Delete email account?"
+                              data-confirm-message="Remove @item.EmailAddress from the email sender pool?@(item.IsActive ? " This account is currently active and will be removed from Round Robin rotation." : "")"
+                              data-confirm-button-text="Yes, delete"
+                              data-loading-submit="">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="btn btn-sm btn-ghost text-danger" title="Delete account" data-submit-button>
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </form>
+                    </div>
+                </article>
+            }
+        </div>
+
+        <!-- Table View -->
+        <div class="table-shell material" id="emailAccountsTable">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Sender account</th>
+                            <th>Status</th>
+                            <th>Total sent</th>
+                            <th>Last used</th>
+                            <th>Credential</th>
+                            <th class="text-end" style="min-width:210px">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in items)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="badge upcoming-b">#@item.PriorityOrder</span>
+                                </td>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="fw-bold text-white text-decoration-none d-block">
+                                        @item.EmailAddress
+                                    </a>
+                                    @if (!string.IsNullOrWhiteSpace(item.DisplayName))
+                                    {
+                                        <span class="text-muted small">@item.DisplayName</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge active-b">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge ended-b">Disabled</span>
+                                    }
+                                </td>
+                                <td>
+                                    <strong>@item.TotalEmailsSent.ToString("N0")</strong>
+                                </td>
+                                <td>
+                                    @if (item.LastUsedAt.HasValue)
+                                    {
+                                        <span>@item.LastUsedAt.Value.ToLocalTime().ToString("dd MMM yyyy · hh:mm tt")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Never used</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge" style="background:rgba(14,165,233,0.12);color:var(--brand2)">
+                                        <i class="fa-solid fa-lock me-1"></i> @(item.HasCredential ? "Protected" : "Missing")
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="row-actions justify-content-end">
+                                        <a asp-action="Details" asp-route-id="@item.Id" title="View details" aria-label="View details">
+                                            <i class="fa-regular fa-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.Id" title="Edit account" aria-label="Edit account">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        </a>
+                                        <form asp-action="ToggleStatus" method="post" class="d-inline"
+                                              data-confirm-title="@(item.IsActive ? "Disable email account?" : "Enable email account?")"
+                                              data-confirm-message="@(item.IsActive ? $"Disable {item.EmailAddress}? Round Robin will skip this account until re-enabled." : $"Enable {item.EmailAddress}? It will rejoin Round Robin rotation at order #{item.PriorityOrder}.")"
+                                              data-confirm-button-text="@(item.IsActive ? "Yes, disable" : "Yes, enable")"
+                                              data-confirm-color="@(item.IsActive ? "#d97706" : "#0284c7")"
+                                              data-loading-submit="">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <input type="hidden" name="isActive" value="@(!item.IsActive ? "true" : "false")" />
+                                            <button type="submit" title="@(item.IsActive ? "Disable account" : "Enable account")" aria-label="@(item.IsActive ? "Disable" : "Enable")" data-submit-button>
+                                                <i class="fa-solid @(item.IsActive ? "fa-pause text-warning" : "fa-play text-success")"></i>
+                                            </button>
+                                        </form>
+                                        <form asp-action="Delete" method="post" class="d-inline"
+                                              data-confirm-title="Delete email account?"
+                                              data-confirm-message="Remove @item.EmailAddress from the email sender pool?@(item.IsActive ? " This account is currently active and will be removed from Round Robin rotation." : "")"
+                                              data-confirm-button-text="Yes, delete"
+                                              data-loading-submit="">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" title="Delete account" aria-label="Delete account" data-submit-button>
+                                                <i class="fa-regular fa-trash-can text-danger"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <partial name="_Pagination" model="Model" />
+        </div>
+    }
+</div>

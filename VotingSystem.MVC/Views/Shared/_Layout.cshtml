@@ -73,6 +73,10 @@
                             <i class="fa-regular fa-user"></i>
                             <span>Users</span>
                         </a>
+                        <a class="nav-item @(currentController == "EmailAccounts" ? "is-active" : null)" asp-controller="EmailAccounts" asp-action="Index">
+                            <i class="fa-regular fa-envelope"></i>
+                            <span>Email accounts</span>
+                        </a>
                         @if (isSuperAdmin)
                         {
                             <a class="nav-item @(currentController == "Roles" ? "is-active" : null)" asp-controller="Roles" asp-action="Index">

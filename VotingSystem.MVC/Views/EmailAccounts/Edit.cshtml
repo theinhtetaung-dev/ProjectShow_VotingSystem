@@ -1,0 +1,60 @@
+@model EmailAccountUpdateRequestModel
+@{
+    ViewData["Title"] = "Edit Email Account";
+}
+
+<div class="view is-active">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Infrastructure / Email Pool / Modify</span>
+            <h1>Edit email account</h1>
+            <p>Update sender configuration, priority order, or rotate the stored App Password.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-ghost">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Back to list</span>
+        </a>
+    </div>
+
+    <div class="panel material">
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post" data-loading-submit="Saving changes...">
+            @Html.AntiForgeryToken()
+            <input asp-for="Id" type="hidden" />
+
+            <partial name="_Form" model="Model" />
+
+            <div class="row g-3 mt-1">
+                <div class="col-md-7">
+                    <label asp-for="AppPassword" class="form-label">New Gmail App Password <span class="text-muted fw-normal">(leave blank to keep existing)</span></label>
+                    <div class="input-group">
+                        <div class="input-wrap flex-grow-1">
+                            <i class="fa-solid fa-key"></i>
+                            <input asp-for="AppPassword" type="password" class="input" maxlength="256" placeholder="Leave blank to retain current encrypted credential" autocomplete="new-password" style="border-top-right-radius:0;border-bottom-right-radius:0" />
+                        </div>
+                        <button type="button" class="btn btn-outline-secondary toggle-secret-btn" data-target="AppPassword" aria-label="Show or hide App Password" style="border-top-left-radius:0;border-bottom-left-radius:0;min-height:44px">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                    <span class="text-muted small d-block mt-1">
+                        <i class="fa-solid fa-lock text-info me-1"></i>
+                        Existing credentials remain protected on the server and are never pre-filled.
+                    </span>
+                    <span asp-validation-for="AppPassword" class="text-danger small d-block mt-1"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4 pt-3 border-top border-secondary-subtle">
+                <button type="submit" class="btn btn-primary" data-submit-button>
+                    <i class="fa-solid fa-check"></i>
+                    <span>Save changes</span>
+                </button>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-ghost">View details</a>
+                <a asp-action="Index" class="btn btn-ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -35,6 +35,10 @@ public partial class TblUser
 
     public virtual ICollection<TblAuditLog> TblAuditLogs { get; set; } = new List<TblAuditLog>();
 
+    public virtual ICollection<TblEmailAccount> TblEmailAccountCreatedByNavigations { get; set; } = new List<TblEmailAccount>();
+
+    public virtual ICollection<TblEmailAccount> TblEmailAccountModifiedByNavigations { get; set; } = new List<TblEmailAccount>();
+
     public virtual ICollection<TblProject> TblProjectCreatedByNavigations { get; set; } = new List<TblProject>();
 
     public virtual ICollection<TblProject> TblProjectModifiedByNavigations { get; set; } = new List<TblProject>();

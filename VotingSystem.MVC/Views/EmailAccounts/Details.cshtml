@@ -1,0 +1,153 @@
+@model EmailAccountResponseModel
+@{
+    ViewData["Title"] = "Email Account Details";
+}
+
+<div class="view is-active">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Infrastructure / Email Pool / Details</span>
+            <h1>@Model.EmailAddress</h1>
+            <p>Review sender account configuration, Round Robin rotation priority, and delivery metrics.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                <i class="fa-regular fa-pen-to-square"></i>
+                <span>Edit account</span>
+            </a>
+            <a asp-action="Index" class="btn btn-ghost">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Back to list</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="portal-kpi-grid mb-4">
+        <div class="portal-kpi-card material">
+            <div class="kpi-icon blue">
+                <i class="fa-solid fa-arrow-down-1-9"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-val">#@Model.PriorityOrder</span>
+                <span class="kpi-lbl">Rotation Priority Order</span>
+            </div>
+        </div>
+
+        <div class="portal-kpi-card material">
+            <div class="kpi-icon green">
+                <i class="fa-solid fa-paper-plane"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-val">@Model.TotalEmailsSent.ToString("N0")</span>
+                <span class="kpi-lbl">Total Emails Sent</span>
+            </div>
+        </div>
+
+        <div class="portal-kpi-card material">
+            <div class="kpi-icon purple">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-val" style="font-size:20px">@(Model.HasCredential ? "Encrypted" : "Missing")</span>
+                <span class="kpi-lbl">App Password Status</span>
+            </div>
+        </div>
+
+        <div class="portal-kpi-card material">
+            <div class="kpi-icon amber">
+                <i class="fa-regular fa-clock"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-val" style="font-size:18px">@(Model.LastUsedAt.HasValue ? Model.LastUsedAt.Value.ToLocalTime().ToString("dd MMM yyyy") : "Never")</span>
+                <span class="kpi-lbl">Last Used Date</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel material">
+        <div class="card-head">
+            <div>
+                <h3>Account configuration</h3>
+                <p>Credential values remain encrypted at rest and are never returned over HTTP.</p>
+            </div>
+            @if (Model.IsActive)
+            {
+                <span class="badge active-b">Active in rotation</span>
+            }
+            else
+            {
+                <span class="badge ended-b">Disabled</span>
+            }
+        </div>
+
+        <dl class="row detail-list mb-4">
+            <dt class="col-sm-3">Account ID</dt>
+            <dd class="col-sm-9"><span class="badge badge-code">#@Model.Id</span></dd>
+
+            <dt class="col-sm-3">Email Address</dt>
+            <dd class="col-sm-9">
+                <span class="copy-pill" data-copy="@Model.EmailAddress" title="Click to copy email address">
+                    <i class="fa-regular fa-copy"></i>
+                    <strong>@Model.EmailAddress</strong>
+                </span>
+            </dd>
+
+            <dt class="col-sm-3">Display Name</dt>
+            <dd class="col-sm-9">@(string.IsNullOrWhiteSpace(Model.DisplayName) ? "Default global sender name" : Model.DisplayName)</dd>
+
+            <dt class="col-sm-3">Priority Order</dt>
+            <dd class="col-sm-9"><span class="badge upcoming-b">Order #@Model.PriorityOrder</span></dd>
+
+            <dt class="col-sm-3">Credential Reference</dt>
+            <dd class="col-sm-9">
+                <span class="badge" style="background:rgba(14,165,233,0.12);color:var(--brand2)">
+                    <i class="fa-solid fa-lock me-1"></i>
+                    @(Model.HasCredential ? "Protected (DataProtection AES/HMAC)" : "Not configured")
+                </span>
+            </dd>
+
+            <dt class="col-sm-3">Total Emails Sent</dt>
+            <dd class="col-sm-9"><strong>@Model.TotalEmailsSent.ToString("N0")</strong></dd>
+
+            <dt class="col-sm-3">Last Used At</dt>
+            <dd class="col-sm-9">@(Model.LastUsedAt.HasValue ? Model.LastUsedAt.Value.ToLocalTime().ToString("dd MMM yyyy · hh:mm tt") : "Never used")</dd>
+
+            <dt class="col-sm-3">Created At</dt>
+            <dd class="col-sm-9">@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy · hh:mm tt")</dd>
+
+            <dt class="col-sm-3">Last Updated At</dt>
+            <dd class="col-sm-9">@(Model.UpdatedAt.HasValue ? Model.UpdatedAt.Value.ToLocalTime().ToString("dd MMM yyyy · hh:mm tt") : "Not modified yet")</dd>
+        </dl>
+
+        <div class="d-flex flex-wrap gap-2 pt-3 border-top border-secondary-subtle">
+            <form asp-action="ToggleStatus" method="post" class="d-inline"
+                  data-confirm-title="@(Model.IsActive ? "Disable email account?" : "Enable email account?")"
+                  data-confirm-message="@(Model.IsActive ? $"Disable {Model.EmailAddress}? Round Robin will skip this account until re-enabled." : $"Enable {Model.EmailAddress}? It will rejoin Round Robin rotation at order #{Model.PriorityOrder}.")"
+                  data-confirm-button-text="@(Model.IsActive ? "Yes, disable" : "Yes, enable")"
+                  data-confirm-color="@(Model.IsActive ? "#d97706" : "#0284c7")"
+                  data-loading-submit="@(Model.IsActive ? "Disabling..." : "Enabling...")">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="isActive" value="@(!Model.IsActive ? "true" : "false")" />
+                <input type="hidden" name="returnTo" value="Details" />
+                <button type="submit" class="btn @(Model.IsActive ? "btn-outline-secondary" : "btn-outline-primary")" data-submit-button>
+                    <i class="fa-solid @(Model.IsActive ? "fa-pause" : "fa-play")"></i>
+                    <span>@(Model.IsActive ? "Disable account" : "Enable account")</span>
+                </button>
+            </form>
+
+            <form asp-action="Delete" method="post" class="d-inline"
+                  data-confirm-title="Delete email account?"
+                  data-confirm-message="Remove @Model.EmailAddress from the email sender pool?@(Model.IsActive ? " This account is currently active and will be removed from Round Robin rotation." : "")"
+                  data-confirm-button-text="Yes, delete account"
+                  data-loading-submit="Deleting...">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-danger" data-submit-button>
+                    <i class="fa-regular fa-trash-can"></i>
+                    <span>Delete account</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # Local ASP.NET Core Data Protection keys
 .keys/
+
+# Local credentials must never be committed
+VotingSystem_User_Credentials.txt

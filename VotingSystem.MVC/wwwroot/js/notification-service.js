@@ -79,13 +79,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.addEventListener("submit", async (event) => {
         const form = event.target;
-        if (!(form instanceof HTMLFormElement) || !form.matches("[data-confirm-message]") || form.dataset.confirmed === "true") return;
+        if (!(form instanceof HTMLFormElement)) return;
 
-        event.preventDefault();
-        const result = await NotificationService.requestConfirmation(form.dataset.confirmMessage, { title: form.dataset.confirmTitle, confirmButtonText: form.dataset.confirmButtonText });
-        if (result.isConfirmed) {
-            form.dataset.confirmed = "true";
-            form.requestSubmit(event.submitter || undefined);
+        if (form.matches("[data-confirm-message]") && form.dataset.confirmed !== "true") {
+            event.preventDefault();
+            const result = await NotificationService.requestConfirmation(form.dataset.confirmMessage, {
+                title: form.dataset.confirmTitle,
+                confirmButtonText: form.dataset.confirmButtonText,
+                confirmButtonColor: form.dataset.confirmColor
+            });
+            if (result.isConfirmed) {
+                form.dataset.confirmed = "true";
+                form.requestSubmit(event.submitter || undefined);
+            }
+            return;
+        }
+
+        if (form.matches("[data-loading-submit]")) {
+            const isValid = typeof window.$ !== "undefined" && typeof window.$.fn?.valid === "function"
+                ? window.$(form).valid()
+                : form.checkValidity();
+            if (!isValid) return;
+
+            const submitButton = event.submitter instanceof HTMLButtonElement
+                ? event.submitter
+                : form.querySelector("[data-submit-button]");
+            const loadingText = form.dataset.loadingSubmit;
+
+            window.setTimeout(() => {
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.setAttribute("aria-busy", "true");
+                    const icon = document.createElement("i");
+                    icon.className = "fa-solid fa-spinner fa-spin";
+                    submitButton.replaceChildren(icon);
+                    if (loadingText) {
+                        const label = document.createElement("span");
+                        label.textContent = loadingText;
+                        submitButton.append(" ", label);
+                    }
+                }
+            }, 0);
         }
     });
 

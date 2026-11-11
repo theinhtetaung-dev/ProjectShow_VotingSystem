@@ -232,7 +232,9 @@ public partial class AppDbContext
     private static bool IsSensitive(string propertyName)
     {
         return propertyName.Contains("Password", StringComparison.OrdinalIgnoreCase)
-            || propertyName.Contains("Token", StringComparison.OrdinalIgnoreCase);
+            || propertyName.Contains("Token", StringComparison.OrdinalIgnoreCase)
+            || propertyName.Contains("Secret", StringComparison.OrdinalIgnoreCase)
+            || propertyName.Contains("Credential", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string? SerializeValues(Dictionary<string, object?>? values)

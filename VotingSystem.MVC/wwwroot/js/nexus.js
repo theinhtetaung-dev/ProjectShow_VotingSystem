@@ -135,7 +135,53 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch(e){}
   }
 
-  // 6. Copy Pill Helper
+  // 6. Segmented Views for Email Accounts (Cards vs Table)
+  const emailAccountsCardsBtn = document.getElementById("emailAccountsCardsBtn");
+  const emailAccountsTableBtn = document.getElementById("emailAccountsTableBtn");
+  const emailAccountsCards = document.getElementById("emailAccountsCards");
+  const emailAccountsTable = document.getElementById("emailAccountsTable");
+
+  if (emailAccountsCardsBtn && emailAccountsTableBtn && emailAccountsCards && emailAccountsTable) {
+    emailAccountsCardsBtn.addEventListener("click", () => {
+      emailAccountsCards.style.display = "grid";
+      emailAccountsTable.style.display = "none";
+      emailAccountsCardsBtn.classList.add("active");
+      emailAccountsTableBtn.classList.remove("active");
+      try { localStorage.setItem("nexus_email_accounts_view", "cards"); } catch(e){}
+    });
+
+    emailAccountsTableBtn.addEventListener("click", () => {
+      emailAccountsCards.style.display = "none";
+      emailAccountsTable.style.display = "block";
+      emailAccountsTableBtn.classList.add("active");
+      emailAccountsCardsBtn.classList.remove("active");
+      try { localStorage.setItem("nexus_email_accounts_view", "table"); } catch(e){}
+    });
+
+    try {
+      if (localStorage.getItem("nexus_email_accounts_view") === "cards") {
+        emailAccountsCardsBtn.click();
+      }
+    } catch(e){}
+  }
+
+  // 7. Password / Secret Visibility Toggle
+  document.querySelectorAll(".toggle-secret-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const targetId = btn.getAttribute("data-target");
+      const input = targetId ? document.getElementById(targetId) : null;
+      if (!input) return;
+      const isPassword = input.type === "password";
+      input.type = isPassword ? "text" : "password";
+      const icon = btn.querySelector("i");
+      if (icon) {
+        icon.classList.toggle("fa-eye", !isPassword);
+        icon.classList.toggle("fa-eye-slash", isPassword);
+      }
+    });
+  });
+
+  // 8. Copy Pill Helper
   document.querySelectorAll(".copy-pill").forEach((pill) => {
     pill.addEventListener("click", async () => {
       const text = pill.dataset.copy || pill.innerText.trim();

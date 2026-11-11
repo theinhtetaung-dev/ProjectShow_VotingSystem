@@ -1,0 +1,58 @@
+@model EmailAccountCreateRequestModel
+@{
+    ViewData["Title"] = "Add Email Account";
+}
+
+<div class="view is-active">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Infrastructure / Email Pool / New</span>
+            <h1>Add email account</h1>
+            <p>Register a Gmail sender account and encrypt its App Password for Round Robin delivery.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-ghost">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Back to list</span>
+        </a>
+    </div>
+
+    <div class="panel material">
+        <form asp-action="Create" method="post" data-loading-submit="Adding account...">
+            @Html.AntiForgeryToken()
+
+            <partial name="_Form" model="Model" />
+
+            <div class="row g-3 mt-1">
+                <div class="col-md-7">
+                    <label asp-for="AppPassword" class="form-label">Gmail App Password</label>
+                    <div class="input-group">
+                        <div class="input-wrap flex-grow-1">
+                            <i class="fa-solid fa-key"></i>
+                            <input asp-for="AppPassword" type="password" class="input" maxlength="256" placeholder="Enter 16-character Gmail App Password" required autocomplete="new-password" style="border-top-right-radius:0;border-bottom-right-radius:0" />
+                        </div>
+                        <button type="button" class="btn btn-outline-secondary toggle-secret-btn" data-target="AppPassword" aria-label="Show or hide App Password" style="border-top-left-radius:0;border-bottom-left-radius:0;min-height:44px">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                    <span class="text-muted small d-block mt-1">
+                        <i class="fa-solid fa-shield-halved text-info me-1"></i>
+                        Encrypted using ASP.NET Core Data Protection before storage and never exposed in API responses.
+                    </span>
+                    <span asp-validation-for="AppPassword" class="text-danger small d-block mt-1"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4 pt-3 border-top border-secondary-subtle">
+                <button type="submit" class="btn btn-primary" data-submit-button>
+                    <i class="fa-solid fa-check"></i>
+                    <span>Save email account</span>
+                </button>
+                <a asp-action="Index" class="btn btn-ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -14,6 +14,7 @@ using VotingSystem.DataAccess.Auditing;
 using VotingSystem.DataAccess.AppDbContextModels;
 using VotingSystem.Domain.Features.Auth;
 using VotingSystem.Domain.Features.AuditLog;
+using VotingSystem.Domain.Features.Email;
 using VotingSystem.Domain.Features.Event;
 using VotingSystem.Domain.Features.Permission;
 using VotingSystem.Domain.Features.Project;
@@ -39,6 +40,16 @@ public static class FeaturesManager
 
         builder.Services.Configure<JwtOptions>(
             builder.Configuration.GetSection(JwtOptions.SectionName));
+
+        var smtpOptions = builder.Configuration
+            .GetSection(SmtpOptions.SectionName)
+            .Get<SmtpOptions>() ?? new SmtpOptions();
+        smtpOptions.Validate();
+
+        builder.Services.Configure<SmtpOptions>(
+            builder.Configuration.GetSection(SmtpOptions.SectionName));
+        builder.Services.AddDataProtection();
+        builder.Services.AddFluentEmail("noreply@votingsystem.local", smtpOptions.DefaultFromName);
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
@@ -76,5 +87,10 @@ public static class FeaturesManager
         builder.Services.AddScoped<IRoleService, RoleService>();
         builder.Services.AddScoped<IPermissionService, PermissionService>();
         builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
+        builder.Services.AddSingleton<IEmailCredentialProtector, DataProtectionEmailCredentialProtector>();
+        builder.Services.AddScoped<IEmailAccountService, EmailAccountService>();
+        builder.Services.AddScoped<IEmailAccountSelector, RoundRobinEmailAccountSelector>();
+        builder.Services.AddScoped<IFluentEmailDispatcher, FluentEmailDispatcher>();
+        builder.Services.AddScoped<IEmailService, EmailService>();
     }
 }

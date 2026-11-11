@@ -15,6 +15,10 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblAuditLog> TblAuditLogs { get; set; }
 
+    public virtual DbSet<TblEmailAccount> TblEmailAccounts { get; set; }
+
+    public virtual DbSet<TblEmailRoundRobinState> TblEmailRoundRobinStates { get; set; }
+
     public virtual DbSet<TblEvent> TblEvents { get; set; }
 
     public virtual DbSet<TblPermission> TblPermissions { get; set; }
@@ -103,6 +107,63 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.PerformedByNavigation).WithMany(p => p.TblAuditLogs)
                 .HasForeignKey(d => d.PerformedBy)
                 .HasConstraintName("FK_Tbl_AuditLog_PerformedBy");
+        });
+
+        modelBuilder.Entity<TblEmailAccount>(entity =>
+        {
+            entity.ToTable("Tbl_Email_Account");
+
+            entity.HasIndex(e => new { e.IsActive, e.DeleteFlag, e.PriorityOrder, e.Id }, "IX_Tbl_Email_Account_ActiveSelection");
+
+            entity.HasIndex(e => e.EmailAddress, "UQ_Tbl_Email_Account_EmailAddress")
+                .IsUnique()
+                .HasFilter("([delete_flag]=(0))");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+            entity.Property(e => e.DeleteFlag).HasColumnName("delete_flag");
+            entity.Property(e => e.DisplayName)
+                .HasMaxLength(150)
+                .HasColumnName("display_name");
+            entity.Property(e => e.EmailAddress)
+                .HasMaxLength(255)
+                .HasColumnName("email_address");
+            entity.Property(e => e.EncryptedAppPassword)
+                .HasMaxLength(2000)
+                .HasColumnName("encrypted_app_password");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("is_active");
+            entity.Property(e => e.LastUsedAt).HasColumnName("last_used_at");
+            entity.Property(e => e.ModifiedAt).HasColumnName("modified_at");
+            entity.Property(e => e.ModifiedBy).HasColumnName("modified_by");
+            entity.Property(e => e.PriorityOrder).HasColumnName("priority_order");
+            entity.Property(e => e.TotalEmailsSent).HasColumnName("total_emails_sent");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.TblEmailAccountCreatedByNavigations)
+                .HasForeignKey(d => d.CreatedBy)
+                .HasConstraintName("FK_Tbl_EmailAccount_CreatedBy");
+
+            entity.HasOne(d => d.ModifiedByNavigation).WithMany(p => p.TblEmailAccountModifiedByNavigations)
+                .HasForeignKey(d => d.ModifiedBy)
+                .HasConstraintName("FK_Tbl_EmailAccount_ModifiedBy");
+        });
+
+        modelBuilder.Entity<TblEmailRoundRobinState>(entity =>
+        {
+            entity.ToTable("Tbl_Email_Round_Robin_State");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.LastSelectedAccountId).HasColumnName("last_selected_account_id");
+            entity.Property(e => e.LastSelectedOrder).HasColumnName("last_selected_order");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+
+            entity.HasOne(d => d.LastSelectedAccount).WithMany(p => p.TblEmailRoundRobinStates)
+                .HasForeignKey(d => d.LastSelectedAccountId)
+                .HasConstraintName("FK_Tbl_EmailRoundRobinState_Account");
         });
 
         modelBuilder.Entity<TblEvent>(entity =>
