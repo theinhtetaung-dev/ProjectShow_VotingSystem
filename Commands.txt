@@ -1,3 +1,13 @@
-dotnet ef dbcontext scaffold "Server=.;Database=VotingSystemDb;User Id=sa;Password=sasa@123;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -o AppDbContextModels -c AppDbContext --no-onconfiguring --force
-Sample data (run after Db_V2.sql and Db_V3.sql):
-sqlcmd -S . -d VotingSystemDb -U sa -P "sasa@123" -C -i Db_SampleData.sql
+Database schema scripts (run from the repository root in version order):
+sqlcmd -S . -d master -U sa -P "<password>" -C -b -i Db_V1.sql
+sqlcmd -S . -d master -U sa -P "<password>" -C -b -i Db_V2.sql
+sqlcmd -S . -d master -U sa -P "<password>" -C -b -i Db_V3.sql
+sqlcmd -S . -d master -U sa -P "<password>" -C -b -i Db_V4.sql
+
+EF Core Database-First scaffold (run from VotingSystem.DataAccess after applying the latest SQL script):
+dotnet ef dbcontext scaffold "Server=.;Database=VotingSystemDb;User Id=sa;Password=<password>;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -o AppDbContextModels -c AppDbContext --no-onconfiguring --force
+
+Do not use Add-Migration or Update-Database. SQL scripts are the schema source of truth.
+
+Sample data (run after all required schema scripts):
+sqlcmd -S . -d VotingSystemDb -U sa -P "<password>" -C -b -i Db_SampleData.sql

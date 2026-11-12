@@ -6,6 +6,9 @@
   <Folder Name="/Resources/DbScript/">
     <File Path="Db_V1.sql" />
     <File Path="Db_V2.sql" />
+    <File Path="Db_V3.sql" />
+    <File Path="Db_V4.sql" />
+    <File Path="Db_SampleData.sql" />
   </Folder>
   <Project Path="VotingSystem.Console/VotingSystem.Console.csproj" Id="a0d95979-ff80-488e-bbd4-cb5a5f148846" />
   <Project Path="VotingSystem.DataAccess/VotingSystem.DataAccess.csproj" />
